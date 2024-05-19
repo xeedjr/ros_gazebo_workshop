@@ -1,10 +1,26 @@
+#xhost +local:
+
 services:
   ros2_gazebo:
-    build: .
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    network_mode: host  
     entrypoint: "terminator"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              #count: 1
+              device_ids: ['0']
+              capabilities: [gpu]
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    privileged: true
     environment:
-      - DISPLAY=172.24.176.1:0.0
-    ports:
-      - "59090:59090"
+      - DISPLAY
+#    ports:
+#      - "59090:59090"
     volumes:
       - ./data:/root/data

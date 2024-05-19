@@ -26,6 +26,8 @@ Panels:
     Name: Time
     SyncMode: 0
     SyncSource: LaserScan
+  - Class: slam_toolbox::SlamToolboxPlugin
+    Name: SlamToolboxPlugin    
 Visualization Manager:
   Class: ""
   Displays:

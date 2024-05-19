@@ -83,18 +83,21 @@ def generate_launch_description():
         output='screen'
     )
 
+    
     nav2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'navigation_launch.py')),
-            launch_arguments={'use_sim_time': 'True'}.items(),
+            launch_arguments={'use_sim_time': 'True',
+            'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml')}.items(),
     )
     
-        
+        #ros2 run nav2_map_server map_saver_cli -f my_map
     slam =  IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')
         ),
-        launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'slam.yaml')}.items(),
+        launch_arguments={'use_sim_time': 'True', 
+                            'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'slam.yaml')}.items(),
     )
     
     foxglove = IncludeLaunchDescription(
@@ -105,15 +108,17 @@ def generate_launch_description():
                 'rosbridge_websocket_launch.xml'
             )
         ),
-        launch_arguments={'port': '59090'}.items(),
+        launch_arguments={'use_sim_time': 'True', 
+                            'port': '59090'}.items(),
     )
     
     teleop_twist =  IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('teleop_twist_joy'), 'launch', 'teleop-launch.py')
         ),
-        launch_arguments={'config_filepath': os.path.join(pkg_project_bringup, 'config', 'ps3.config.yaml'),
-                          'joy_vel':'/diff_drive/cmd_vel'}.items(),
+        launch_arguments={'use_sim_time': 'True',
+                            'config_filepath': os.path.join(pkg_project_bringup, 'config', 'ps3.config.yaml'),
+                          'joy_vel':'/cmd_vel_nav'}.items(),
     )
         
 
@@ -124,7 +129,7 @@ def generate_launch_description():
         bridge,
         robot_state_publisher,
         rviz,
-       # nav2,
+        nav2,
         slam,
         foxglove,
         teleop_twist
