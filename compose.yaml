@@ -19,6 +19,7 @@ services:
     tty: true        # docker run -t
     privileged: true
     environment:
+#      - DISPLAY=172.24.176.1:0.0
       - DISPLAY
 #    ports:
 #      - "59090:59090"
