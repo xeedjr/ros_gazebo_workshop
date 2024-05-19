@@ -1,8 +1,9 @@
-FROM ubuntu:22.04
+FROM nvidia/opengl:1.2-glvnd-runtime-ubuntu22.04
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV IGNITION_VERSION fortress
 ENV ROS_DISTRO humble
+ENV NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all
 
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC 
@@ -63,3 +64,5 @@ RUN apt install -y ros-humble-turtlebot3*
 RUN apt install -y ros-humble-slam-toolbox
 
 RUN apt install -y ros-humble-rosbridge-suite
+
+RUN apt-get install -y lshw nvidia-prime nvidia-settings

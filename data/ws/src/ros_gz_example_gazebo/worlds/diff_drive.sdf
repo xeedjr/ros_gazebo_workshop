@@ -35,6 +35,10 @@
       name="ros_gz_example_gazebo::FullSystem">
     </plugin>
 
+    <physics name="10ms" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
 
     <light name="sun" type="directional">
       <cast_shadows>true</cast_shadows>
@@ -79,7 +83,7 @@
 
     <model name="diff_drive">
       <self_collide>true</self_collide>
-      <pose>0 0 0.35 0 0 0</pose>
+      <pose>0.5 0.5 0.35 0 0 0</pose>
       <include merge="true">
         <uri>package://ros_gz_example_description/models/diff_drive</uri>
       </include>
@@ -111,7 +115,7 @@
 
 
 
-
+<!--
     <model name='cylinder'>
       <pose>3.00553 4.80728 0.499999 0 -0 0</pose>
       <link name='cylinder_link'>
@@ -357,5 +361,15 @@
       <static>false</static>
       <self_collide>false</self_collide>
     </model>
+-->
+
+    <model name="turtlebot3_world">
+      <static>1</static>
+      <include>
+        <uri>package://ros_gz_example_description/models/turtlebot3_world</uri>
+      </include>
+    </model>
+
+
   </world>
 </sdf>
