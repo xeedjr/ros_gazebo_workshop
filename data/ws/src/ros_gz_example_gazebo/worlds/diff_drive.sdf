@@ -363,13 +363,34 @@
     </model>
 -->
 
+<!--
+    <include>
+    <uri>
+    https://fuel.gazebosim.org/1.0/OpenRobotics/models/Warehouse
+    </uri>
+    </include>
+-->
+<!--
+      <include>
+    <uri>
+    https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress island
+    </uri>
+    </include>
+    -->
+<!--
     <model name="turtlebot3_world">
       <static>1</static>
       <include>
         <uri>package://ros_gz_example_description/models/turtlebot3_world</uri>
       </include>
     </model>
+-->
 
+<include>
+<uri>
+https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
+</uri>
+</include>
 
   </world>
 </sdf>
