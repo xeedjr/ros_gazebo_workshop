@@ -5,6 +5,8 @@ ENV IGNITION_VERSION fortress
 ENV ROS_DISTRO humble
 ENV NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all
 
+LABEL version="1.0"
+
 # Workaround https://unix.stackexchange.com/questions/2544/how-to-work-around-release-file-expired-problem-on-a-local-mirror
 RUN echo "Acquire::Check-Valid-Until \"false\";\nAcquire::Check-Date \"false\";" | cat > /etc/apt/apt.conf.d/10no--check-valid-until
 
@@ -69,3 +71,45 @@ RUN apt install -y ros-humble-slam-toolbox
 RUN apt install -y ros-humble-rosbridge-suite
 
 RUN apt-get install -y lshw nvidia-prime nvidia-settings
+
+#ORB SLAM
+
+# Build Pangolin
+RUN cd /tmp && git clone https://github.com/stevenlovegrove/Pangolin && \
+    cd Pangolin && git checkout v0.9.1 && mkdir build && cd build && \
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS=-std=c++14 -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    make -j8 && make install && \
+    cd / && rm -rf /tmp/Pangolin
+
+RUN git clone https://github.com/zang09/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3
+
+WORKDIR "/ORB_SLAM3"
+
+RUN chmod +x build.sh
+
+RUN ./build.sh
+
+WORKDIR "/root"
+
+RUN apt install -y ros-humble-vision-opencv && sudo apt install -y ros-humble-message-filters
+
+RUN mkdir -p colcon_ws/src
+WORKDIR "/root/colcon_ws/src"
+RUN git clone https://github.com/zang09/ORB_SLAM3_ROS2.git orbslam3_ros2
+WORKDIR "/root/colcon_ws/src/orbslam3_ros2"
+RUN git checkout humble
+WORKDIR "/root/colcon_ws"
+# Source the ROS 2 setup script
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
+SHELL ["/bin/bash", "-c"]
+RUN apt-get install ros-humble-sophus
+RUN apt install -y python3-ament-package
+
+WORKDIR /ORB_SLAM3/Thirdparty/Sophus/build
+RUN make install
+#RUN colcon build --symlink-install --packages-select orbslam3
+
+WORKDIR "/root"
+
+
+#https://github.com/zang09/ORB_SLAM3_ROS2/tree/humble
