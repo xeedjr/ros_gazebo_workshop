@@ -81,9 +81,11 @@ RUN cd /tmp && git clone https://github.com/stevenlovegrove/Pangolin && \
     make -j8 && make install && \
     cd / && rm -rf /tmp/Pangolin
 
+WORKDIR "/root/Install/ORB_SLAM"
+
 RUN git clone https://github.com/zang09/ORB-SLAM3-STEREO-FIXED.git ORB_SLAM3
 
-WORKDIR "/ORB_SLAM3"
+WORKDIR "/root/Install/ORB_SLAM/ORB_SLAM3"
 
 RUN chmod +x build.sh
 
@@ -105,8 +107,11 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get install ros-humble-sophus
 RUN apt install -y python3-ament-package
 
-WORKDIR /ORB_SLAM3/Thirdparty/Sophus/build
+WORKDIR "/root/Install/ORB_SLAM/ORB_SLAM3/Thirdparty/Sophus/build"
 RUN make install
+
+WORKDIR "/root/colcon_ws"
+
 #RUN colcon build --symlink-install --packages-select orbslam3
 
 WORKDIR "/root"
