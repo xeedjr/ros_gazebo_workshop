@@ -1,10 +1,13 @@
+#xhost +local:
+
 services:
   ros2_gazebo:
     build: .
+    privileged: true
     entrypoint: "terminator"
+    network_mode: host  
     environment:
-      - DISPLAY=172.24.176.1:0.0
-    ports:
-      - "59090:59090"
+      - DISPLAY
     volumes:
       - ./data:/root/data
+      - /dev/input:/dev/input
