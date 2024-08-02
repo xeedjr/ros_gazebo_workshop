@@ -38,6 +38,7 @@ def generate_launch_description():
 
     is_sim = False
 
+
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
     pkg_project_gazebo = get_package_share_directory('ros_gz_example_gazebo')
@@ -54,6 +55,8 @@ def generate_launch_description():
     robot_description_config = Command(['xacro ', xacro_file])
 
     if (is_sim == True):
+        use_sim_time = True
+
         # Setup to launch the simulator and Gazebo world
         gz_sim = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -92,6 +95,8 @@ def generate_launch_description():
 
             )
     else:
+        use_sim_time = False
+
         robot_controllers = os.path.join(pkg_project_bringup, 'config', 'diff_drive_controller_velocity.yaml')
         control_node = Node(
             package="controller_manager",
@@ -104,13 +109,23 @@ def generate_launch_description():
             arguments=['--ros-args', '--log-level', 'info']
         )
 
+        rplidar = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(get_package_share_directory('rplidar_ros'), 'launch', 'rplidar_a1_launch.py')),
+            launch_arguments={'serial_port': '/dev/ttyUSB0',
+                                'serial_baudrate': '460800',
+                                'frame_id': 'lidar_link'
+                          }.items(),
+        )
+
+
     # Takes the description and joint angles as inputs and publishes the 3D poses of the robot links
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='both',
-        parameters=[{'use_sim_time': True}, {'robot_description': robot_description_config}],
+        parameters=[{'use_sim_time': use_sim_time}, {'robot_description': robot_description_config}],
     )
 
     # Visualize in RViz
@@ -146,7 +161,7 @@ def generate_launch_description():
             os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
-                        'use_sim_time': 'True',
+                        'use_sim_time': str(use_sim_time),
                         'slam': 'True',
                         }.items(),
     )
@@ -207,6 +222,9 @@ def generate_launch_description():
                                 description='Open RViz.'),
             robot_state_publisher,
 
+
+            rplidar,
+
             #joy,
             control_node,
             diff_drive_spawner,
@@ -214,7 +232,7 @@ def generate_launch_description():
 
     #        joy_teleop,
     #        slam
-  #          nav2,
+            nav2,
             my_node,
 
       #      rviz

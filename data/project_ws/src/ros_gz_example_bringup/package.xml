@@ -17,6 +17,8 @@
   <depend>teleop_twist_joy</depend>
   <depend>navigation2</depend>
   <depend>nav2_bringup</depend>
+  <depend>rplidar_ros</depend>
+
 
   <depend>ros_gz_example_description</depend>
   <depend>ros_gz_example_gazebo</depend>
