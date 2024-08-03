@@ -20,6 +20,13 @@
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include <iostream>
+#include <fcntl.h>   // File control definitions
+#include <unistd.h>  // UNIX standard function definitions
+#include <termios.h> // POSIX terminal control definitions
+#include <errno.h>   // Error number definitions
+#include <string.h>  // String function definitions
+
 namespace hardware_link2
 {
 hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
@@ -30,12 +37,55 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
     return CallbackReturn::ERROR;
   }
 
+  cfg.device = info_.hardware_parameters["device"];
+  cfg.baud_rate = std::stoi(info_.hardware_parameters["baud_rate"]);
+  cfg.timeout_ms = std::stoi(info_.hardware_parameters["timeout_ms"]);
 
   // TODO(anyone): read parameters and initialize the hardware
 //  hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 //  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Init ...please wait...");
+
+    // Open the serial port
+    fd = open(cfg.device.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
+    if (fd < 0) {
+        std::cerr << "Error " << errno << " opening " << cfg.device << ": " << strerror(errno) << std::endl;
+        return CallbackReturn::ERROR;
+    }
+
+    // Set the baud rate
+    struct termios tty;
+    memset(&tty, 0, sizeof tty);
+    if (tcgetattr(fd, &tty) != 0) {
+        std::cerr << "Error " << errno << " from tcgetattr: " << strerror(errno) << std::endl;
+        return CallbackReturn::ERROR;
+    }
+
+    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, B115200);
+
+    tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8; // 8-bit chars
+    tty.c_iflag &= ~IGNBRK;          // disable break processing
+    tty.c_lflag = 0;                 // no signaling chars, no echo,
+                                     // no canonical processing
+    tty.c_oflag = 0;                 // no remapping, no delays
+    tty.c_cc[VMIN]  = 0;             // read doesn't block
+    tty.c_cc[VTIME] = 10;             // 0.5 seconds read timeout
+
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
+
+    tty.c_cflag |= (CLOCAL | CREAD);  // ignore modem controls,
+                                      // enable reading
+    tty.c_cflag &= ~(PARENB | PARODD); // shut off parity
+    tty.c_cflag |= 0;
+    tty.c_cflag &= ~CSTOPB;
+    tty.c_cflag &= ~CRTSCTS;
+
+    if (tcsetattr(fd, TCSANOW, &tty) != 0) {
+        std::cerr << "Error " << errno << " from tcsetattr: " << strerror(errno) << std::endl;
+        return CallbackReturn::ERROR;
+    }
 
   return CallbackReturn::SUCCESS;
 }
@@ -118,13 +168,74 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_deactivate(
   // TODO(anyone): prepare the robot to stop receiving commands
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
 
+  close(fd);
+
   return CallbackReturn::SUCCESS;
 }
 
 hardware_interface::return_type HardwareLinkInterface::read(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
+  const rclcpp::Time & time /*time*/, const rclcpp::Duration & period/*period*/)
 {
   // TODO(anyone): read robot states
+
+  wheels[0].state_pos_prev = wheels[0].state_pos;
+  wheels[1].state_pos_prev = wheels[1].state_pos;
+//std::cerr << "read state :" << std::endl;
+
+    // Clear the buffer
+    tcflush(fd , TCIFLUSH);
+
+    // Send "pos\n\r"
+    const char *msg = "pos\r\n";
+    if (::write(fd, msg, strlen(msg)) < 0) {
+        std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
+        close(fd);
+        hardware_interface::return_type::ERROR;
+    }
+
+
+    // Read until '\r'   Echo
+    char bufp[256];
+    auto sizep = read_buffer(bufp, sizeof(bufp));
+//    std::cerr << "read :" << bufp << ":end"<< std::endl;
+
+  // Read until '\r'   Pos
+    char buf[256];
+    auto size = read_buffer(buf, sizeof(buf));
+//    std::cerr << "read :" << buf << ":end"<< std::endl;
+
+  // Read until '\r'   Ok
+    char buft[256];
+    auto sizet = read_buffer(buft, sizeof(buft));
+//    std::cerr << "read :" << buft << ":end"<< std::endl;
+
+
+  double w1 = 0;
+  double w2 = 0;
+
+//  char* d = "0.000000 0.000000";
+
+  auto res = sscanf(buft, "%lf %lf", &w1, &w2);
+
+  wheels[0].state_pos = w1*-1.0;
+  wheels[1].state_pos = w2;
+
+  double wposdelta0 =  wheels[0].state_pos - wheels[0].state_pos_prev;
+  double wposdelta1 =  wheels[1].state_pos - wheels[1].state_pos_prev;
+
+  double koef = 1.0 / period.seconds();
+  //std::cerr << "koef :" << koef << std::endl;
+  //std::cerr << "period :" << period.seconds() << std::endl;
+  //std::cerr << "wposdelta0 :" << wposdelta0 << std::endl;
+
+  wheels[0].state_vel = wposdelta0 * koef;
+  wheels[1].state_vel = wposdelta1 * koef;
+
+//std::cerr << "res :  " << res << std::endl;
+//std::cerr << "state :  " << w1 << " wwww " << w2 << ": " << std::endl;
+
+    // Clear the buffer
+    tcflush(fd , TCIFLUSH);
 
   return hardware_interface::return_type::OK;
 }
@@ -133,6 +244,28 @@ hardware_interface::return_type HardwareLinkInterface::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   // TODO(anyone): write robot's commands'
+    // Clear the buffer
+    tcflush(fd , TCIFLUSH);
+
+    char buf[256];
+
+    sprintf(buf, "set %lf %lf\r\n0", wheels[0].cmd_vel*-1.0, wheels[1].cmd_vel);
+    if (::write(fd, buf, strlen(buf)) < 0) {
+        std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
+        close(fd);
+        hardware_interface::return_type::ERROR;
+    }
+
+    char bufp[256];
+    auto sizep = read_buffer(bufp, sizeof(bufp));
+//    std::cerr << "read :" << bufp << ":end"<< std::endl;
+
+    char bufok[256];
+    auto sizeok = read_buffer(bufok, sizeof(bufok));
+//    std::cerr << "read :" << bufok << ":end"<< std::endl;
+
+    // Clear the buffer
+    tcflush(fd , TCIFLUSH);
 
   return hardware_interface::return_type::OK;
 }
