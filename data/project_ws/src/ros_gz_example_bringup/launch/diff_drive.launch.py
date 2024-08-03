@@ -36,7 +36,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Configure ROS nodes for launch
 
-    is_sim = False
+    is_sim = True
 
 
     # Setup project paths
@@ -91,7 +91,7 @@ def generate_launch_description():
                     '-allow_renaming', 'true',
                     '-x', '-1',
                     '-y', '0',
-                    '-z', '1'],
+                    '-z', '0.01'],
 
             )
     else:

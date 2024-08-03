@@ -13,8 +13,6 @@ find_package(pluginlib REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 
-pkg_check_modules(LIBSERIAL REQUIRED libserial)
-
 add_library(
   hardware_link2
   SHARED
