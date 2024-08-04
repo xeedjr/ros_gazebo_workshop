@@ -65,7 +65,7 @@ class HardwareLinkInterface : public hardware_interface::SystemInterface
     while (true) {
 //      std::cerr << "read state 1:" << std::endl;
         int n = ::read(fd, &buff[index], 1);
-//        std::cerr << "read state 2: " << n << "  " << buff[index]<< std::endl;
+//        std::cerr << "read state 2: " << n << "  " << (int) buff[index]<< std::endl;
         if (n < 0) {
             std::cerr << "Error " << errno << " reading from " << cfg.device << ": " << strerror(errno) << std::endl;
             return -1;
@@ -77,6 +77,7 @@ class HardwareLinkInterface : public hardware_interface::SystemInterface
         }
         if (buff[index] == '\n') {
             // End of line
+            index++;
             break;
         }
         index++;

@@ -36,7 +36,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Configure ROS nodes for launch
 
-    is_sim = True
+    is_sim = False
 
 
     # Setup project paths

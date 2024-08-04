@@ -65,20 +65,22 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
     cfsetospeed(&tty, B115200);
     cfsetispeed(&tty, B115200);
 
+    // Setting raw mode
+    cfmakeraw(&tty); // This sets the terminal to raw mode
+
+    // Additional configuration
     tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8; // 8-bit chars
-    tty.c_iflag &= ~IGNBRK;          // disable break processing
-    tty.c_lflag = 0;                 // no signaling chars, no echo,
-                                     // no canonical processing
-    tty.c_oflag = 0;                 // no remapping, no delays
-    tty.c_cc[VMIN]  = 0;             // read doesn't block
-    tty.c_cc[VTIME] = 10;             // 0.5 seconds read timeout
+    tty.c_iflag &= ~IGNBRK;                     // disable break processing
+    tty.c_lflag = 0;                            // no signaling chars, no echo,
+                                                // no canonical processing
+    tty.c_oflag = 0;                            // no remapping, no delays
+    tty.c_cc[VMIN]  = 0;                        // read doesn't block
+    tty.c_cc[VTIME] = 30;                       // 3 seconds read timeout
 
-    tty.c_iflag &= ~(IXON | IXOFF | IXANY); // shut off xon/xoff ctrl
-
-    tty.c_cflag |= (CLOCAL | CREAD);  // ignore modem controls,
-                                      // enable reading
-    tty.c_cflag &= ~(PARENB | PARODD); // shut off parity
-    tty.c_cflag |= 0;
+    tty.c_iflag &= ~(IXON | IXOFF | IXANY);     // shut off xon/xoff ctrl
+    tty.c_cflag |= (CLOCAL | CREAD);            // ignore modem controls,
+                                                // enable reading
+    tty.c_cflag &= ~(PARENB | PARODD);          // shut off parity
     tty.c_cflag &= ~CSTOPB;
     tty.c_cflag &= ~CRTSCTS;
 
@@ -197,39 +199,52 @@ hardware_interface::return_type HardwareLinkInterface::read(
     // Read until '\r'   Echo
     char bufp[256];
     auto sizep = read_buffer(bufp, sizeof(bufp));
-//    std::cerr << "read :" << bufp << ":end"<< std::endl;
+//    std::cerr << "read :" << bufp << ":end size: "<< sizep << std::endl;
 
   // Read until '\r'   Pos
     char buf[256];
     auto size = read_buffer(buf, sizeof(buf));
-//    std::cerr << "read :" << buf << ":end"<< std::endl;
+//    std::cerr << "read :" << buf << ":end size: " << size << std::endl;
 
   // Read until '\r'   Ok
     char buft[256];
     auto sizet = read_buffer(buft, sizeof(buft));
-//    std::cerr << "read :" << buft << ":end"<< std::endl;
+//    std::cerr << "read :" << buft << ":end size: " << sizet << std::endl;
 
 
-  double w1 = 0;
-  double w2 = 0;
+  double w1_pos = 0;
+  double w2_pos = 0;
+
+  double w1_vel = 0;
+  double w2_vel = 0;
+
+  double w1_pwm = 0;
+  double w2_pwm = 0;
 
 //  char* d = "0.000000 0.000000";
 
-  auto res = sscanf(buft, "%lf %lf", &w1, &w2);
+  auto res = sscanf(buf, "%lf %lf %lf %lf %lf %lf", &w1_pos, &w2_pos, &w1_vel, &w2_vel, &w1_pwm, &w2_pwm);
 
-  wheels[0].state_pos = w1*-1.0;
-  wheels[1].state_pos = w2;
+  if (res != 6) {
+    std::cerr << "sscanf :" << res << "str: " << buf << std::endl;
+    return hardware_interface::return_type::ERROR;
+  }
 
-  double wposdelta0 =  wheels[0].state_pos - wheels[0].state_pos_prev;
-  double wposdelta1 =  wheels[1].state_pos - wheels[1].state_pos_prev;
+  wheels[0].state_pos = w1_pos*-1.0;
+  wheels[1].state_pos = w2_pos;
 
-  double koef = 1.0 / period.seconds();
+//  double wposdelta0 =  wheels[0].state_pos - wheels[0].state_pos_prev;
+//  double wposdelta1 =  wheels[1].state_pos - wheels[1].state_pos_prev;
+
+//  double koef = 1.0 / period.seconds();
   //std::cerr << "koef :" << koef << std::endl;
   //std::cerr << "period :" << period.seconds() << std::endl;
   //std::cerr << "wposdelta0 :" << wposdelta0 << std::endl;
 
-  wheels[0].state_vel = wposdelta0 * koef;
-  wheels[1].state_vel = wposdelta1 * koef;
+//  wheels[0].state_vel = wposdelta0 * koef;
+//  wheels[1].state_vel = wposdelta1 * koef;
+  wheels[0].state_vel = w1_vel*-1.0;
+  wheels[1].state_vel = w2_vel;
 
 //std::cerr << "res :  " << res << std::endl;
 //std::cerr << "state :  " << w1 << " wwww " << w2 << ": " << std::endl;
