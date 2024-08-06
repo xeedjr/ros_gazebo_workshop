@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="diff_drive" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:property name="is_sim" value='False' />
+  <xacro:property name="is_sim" value="$(arg sim_mode)" />
 
   <ros2_control name="IgnitionSystem" type="system">
     <xacro:if value="${is_sim==True}">

@@ -7,6 +7,7 @@ services:
     entrypoint: "terminator"
     network_mode: host  
     environment:
+      - IS_SIM=True
       - DISPLAY
     volumes:
       - ./data:/root/data

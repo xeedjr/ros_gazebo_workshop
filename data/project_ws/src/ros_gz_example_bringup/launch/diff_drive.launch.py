@@ -36,7 +36,10 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Configure ROS nodes for launch
 
-    is_sim = False
+    if 'IS_SIM' in os.environ:
+        is_sim = True
+    else:
+        is_sim = False
 
 
     # Setup project paths
@@ -52,7 +55,7 @@ def generate_launch_description():
 
     xacro_file = os.path.join(pkg_project_description, 'models', 'diff_drive_urdf', 'model.urdf.xacro')
     # robot_description_config = xacro.process_file(xacro_file).toxml()
-    robot_description_config = Command(['xacro ', xacro_file])
+    robot_description_config = Command(['xacro ', xacro_file, ' sim_mode:=', str(is_sim)])
 
     if (is_sim == True):
         use_sim_time = True
