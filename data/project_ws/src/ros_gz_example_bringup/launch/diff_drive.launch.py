@@ -36,6 +36,11 @@ from launch_ros.actions import Node
 def generate_launch_description():
     # Configure ROS nodes for launch
 
+    if 'IS_DEBUGGER' in os.environ:
+        is_debugger = True
+    else:
+        is_debugger = False
+
     if 'IS_SIM' in os.environ:
         is_sim = True
     else:
@@ -197,46 +202,52 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
+    if (is_debugger == False):
+        if (is_sim == True):
+            return LaunchDescription([
+                gz_sim,
+                DeclareLaunchArgument('rviz', default_value='true',
+                                    description='Open RViz.'),
+                bridge,
+                robot_state_publisher,
 
-    if (is_sim == True):
-        return LaunchDescription([
-            gz_sim,
-            DeclareLaunchArgument('rviz', default_value='true',
-                                description='Open RViz.'),
-            bridge,
-            robot_state_publisher,
+                #joy,
 
-            #joy,
+                ignition_spawn_entity,
+                diff_drive_spawner,
+                joint_broad_spawner,
 
-            ignition_spawn_entity,
-            diff_drive_spawner,
-            joint_broad_spawner,
+        #        joy_teleop,
+        #        slam
+                nav2,
+                my_node,
 
-    #        joy_teleop,
-    #        slam
-            nav2,
-            my_node,
+                rviz
+            ])
+        else:
+            return LaunchDescription([
+                DeclareLaunchArgument('rviz', default_value='true',
+                                    description='Open RViz.'),
+                robot_state_publisher,
 
-            rviz
-        ])
+
+                rplidar,
+
+                #joy,
+                control_node,
+                diff_drive_spawner,
+                joint_broad_spawner,
+
+        #        joy_teleop,
+        #        slam
+                nav2,
+                my_node,
+
+        #      rviz
+            ])
     else:
         return LaunchDescription([
-            DeclareLaunchArgument('rviz', default_value='true',
-                                description='Open RViz.'),
-            robot_state_publisher,
-
-
-            rplidar,
-
-            #joy,
-            control_node,
-            diff_drive_spawner,
-            joint_broad_spawner,
-
-    #        joy_teleop,
-    #        slam
-            nav2,
-            my_node,
-
-      #      rviz
-        ])
+                DeclareLaunchArgument('rviz', default_value='true',
+                                    description='Open RViz.'),
+                rviz
+            ])
