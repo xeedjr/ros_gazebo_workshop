@@ -6,6 +6,8 @@ services:
     privileged: true
     entrypoint: "terminator"
     network_mode: host  
+    ipc: "host"
+    pid: "host"
     environment:
       - IS_SIM=True
       - DISPLAY
