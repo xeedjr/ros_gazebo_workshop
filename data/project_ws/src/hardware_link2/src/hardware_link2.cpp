@@ -230,8 +230,8 @@ hardware_interface::return_type HardwareLinkInterface::read(
     return hardware_interface::return_type::ERROR;
   }
 
-  wheels[0].state_pos = w1_pos*-1.0;
-  wheels[1].state_pos = w2_pos;
+  wheels[0].state_pos = w1_pos;
+  wheels[1].state_pos = w2_pos*-1.0;
 
 //  double wposdelta0 =  wheels[0].state_pos - wheels[0].state_pos_prev;
 //  double wposdelta1 =  wheels[1].state_pos - wheels[1].state_pos_prev;
@@ -243,8 +243,8 @@ hardware_interface::return_type HardwareLinkInterface::read(
 
 //  wheels[0].state_vel = wposdelta0 * koef;
 //  wheels[1].state_vel = wposdelta1 * koef;
-  wheels[0].state_vel = w1_vel*-1.0;
-  wheels[1].state_vel = w2_vel;
+  wheels[0].state_vel = w1_vel;
+  wheels[1].state_vel = w2_vel*-1.0;
 
 //std::cerr << "res :  " << res << std::endl;
 //std::cerr << "state :  " << w1 << " wwww " << w2 << ": " << std::endl;
@@ -264,7 +264,7 @@ hardware_interface::return_type HardwareLinkInterface::write(
 
     char buf[256];
 
-    sprintf(buf, "set %lf %lf\r\n0", wheels[0].cmd_vel*-1.0, wheels[1].cmd_vel);
+    sprintf(buf, "set %lf %lf\r\n0", wheels[0].cmd_vel, wheels[1].cmd_vel*-1.0);
     if (::write(fd, buf, strlen(buf)) < 0) {
         std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
         close(fd);
