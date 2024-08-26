@@ -4,7 +4,8 @@ services:
   ros2_gazebo:
     build: .
     privileged: true
-    entrypoint: "sleep 3333d"
+    entrypoint: "/root/data/project_ws/build2.sh"
+#    entrypoint: "terminator"
     network_mode: host  
     environment:
       - DISPLAY
