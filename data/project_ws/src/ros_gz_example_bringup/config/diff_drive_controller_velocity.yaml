@@ -40,18 +40,18 @@ diff_drive_base_controller:
     linear.x.has_velocity_limits: true
     linear.x.has_acceleration_limits: true
     linear.x.has_jerk_limits: false
-    linear.x.max_velocity: 0.1
-    linear.x.min_velocity: -0.1
-    linear.x.max_acceleration: 0.01
+    linear.x.max_velocity: 0.22
+    linear.x.min_velocity: -0.22
+    linear.x.max_acceleration: 0.08
     linear.x.max_jerk: 0.0
     linear.x.min_jerk: 0.0
 
     angular.z.has_velocity_limits: true
     angular.z.has_acceleration_limits: true
     angular.z.has_jerk_limits: false
-    angular.z.max_velocity: 0.2
-    angular.z.min_velocity: -0.2
-    angular.z.max_acceleration: 0.1
-    angular.z.min_acceleration: -0.1
+    angular.z.max_velocity: 2.84
+    angular.z.min_velocity: -2.84
+    angular.z.max_acceleration: 0.9
+    angular.z.min_acceleration: -0.9
     angular.z.max_jerk: 0.0
     angular.z.min_jerk: 0.0

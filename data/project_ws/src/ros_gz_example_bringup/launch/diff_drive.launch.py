@@ -105,6 +105,15 @@ def generate_launch_description():
     else:
         use_sim_time = False
 
+        # Visualize in RViz
+        usb_camera = Node(
+            package='v4l2_camera',
+            executable='v4l2_camera_node',
+            output='both',
+            arguments=['-video_device', "/dev/video0",
+            "-pixel_format", "MJPG"],
+        )
+
         robot_controllers = os.path.join(pkg_project_bringup, 'config', 'diff_drive_controller_velocity.yaml')
         control_node = Node(
             package="controller_manager",
@@ -232,18 +241,14 @@ def generate_launch_description():
 
 
                 rplidar,
+                usb_camera,
 
-                #joy,
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
 
-        #        joy_teleop,
-        #        slam
                 nav2,
                 my_node,
-
-        #      rviz
             ])
     else:
         return LaunchDescription([
