@@ -1,6 +1,18 @@
-FROM ubuntu:22.04
+#FROM ubuntu:22.04
+FROM nvidia/opengl:1.0-glvnd-devel-ubuntu22.04
 
 ENV LANG en_US.UTF-8
+
+ENV __NV_PRIME_RENDER_OFFLOAD=1
+ENV __GLX_VENDOR_LIBRARY_NAME=nvidia
+ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES},display
+ENV DEBIAN_FRONTEND noninteractive
+ENV IGNITION_VERSION fortress
+ENV ROS_DISTRO humble
+
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC 
+RUN apt-get -y install tzdata
 
 # Update package lists and install pre-requisites
 RUN apt update && DEBIAN_FRONTEND=noninteractive && apt install -y \
@@ -29,6 +41,9 @@ RUN apt update && apt install -y \
     python3-pip \
     mc \
     terminator
+
+RUN apt install -y glmark2
+#RUN apt install -y ros-eloquent-slam-toolbox
 
 # Install ROS dependencies (ideally after ROS installation)
 RUN pip3 install -U rosdep colcon-common-extensions

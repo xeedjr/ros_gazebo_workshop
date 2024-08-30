@@ -4,6 +4,14 @@ services:
   ros2_gazebo:
     build: .
     privileged: true
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     entrypoint: "terminator"
     network_mode: host  
     ipc: "host"
