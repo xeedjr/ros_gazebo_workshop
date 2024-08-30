@@ -83,11 +83,14 @@
       </uri>
     </include>
 
-    <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
-      </uri>
-    </include>
+    <model name="turtlebot3_world">
+      <static>true</static>
+      <include>
+        <uri>
+          https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
+        </uri>
+      </include>
+    </model> 
 
     <!-- <model name="turtlebot3_world">
       <static>1</static>

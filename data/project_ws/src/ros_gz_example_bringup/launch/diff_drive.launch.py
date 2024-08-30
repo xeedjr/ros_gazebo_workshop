@@ -17,7 +17,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, TimerAction
 from launch.actions import IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -150,28 +150,29 @@ def generate_launch_description():
        package='rviz2',
        executable='rviz2',
        arguments=['-d', os.path.join(pkg_project_bringup, 'config', 'diff_drive.rviz')],
+       parameters=[{'use_sim_time': use_sim_time}],
        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    slam = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-        launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
-    )
+    # slam = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
+    #     launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
+    # )
     
-    joy = Node(
-        package='joy',
-        executable='joy_node',
-        parameters=[os.path.join(pkg_project_bringup, 'config', 'joy-params.yaml')],
-        output='screen'
-    )
+    # joy = Node(
+    #     package='joy',
+    #     executable='joy_node',
+    #     parameters=[os.path.join(pkg_project_bringup, 'config', 'joy-params.yaml')],
+    #     output='screen'
+    # )
 
-    joy_teleop = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('teleop_twist_joy'), 'launch', 'teleop-launch.py')),
-        launch_arguments={'config_filepath': os.path.join(pkg_project_bringup, 'config', 'ps3.config.yaml'),
-                            "joy_vel": '/diff_drive_base_controller/cmd_vel_unstamped'}.items(),
-    )
+    # joy_teleop = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('teleop_twist_joy'), 'launch', 'teleop-launch.py')),
+    #     launch_arguments={'config_filepath': os.path.join(pkg_project_bringup, 'config', 'ps3.config.yaml'),
+    #                         "joy_vel": '/diff_drive_base_controller/cmd_vel_unstamped'}.items(),
+    # )
 
     nav2 = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -193,11 +194,8 @@ def generate_launch_description():
     my_node = Node(
         package='my_package',
         executable='my_node',
-        output='both'
+        output='both',
     )
-
-
-
 
     diff_drive_spawner = Node(
         package="controller_manager",
@@ -213,25 +211,29 @@ def generate_launch_description():
 
     if (is_debugger == False):
         if (is_sim == True):
+            # Delay of 3 seconds after gz_sim
+            delayed_actions = TimerAction(
+                period=20.0,
+                actions=[
+
+
+                    diff_drive_spawner,
+                    joint_broad_spawner,
+                    nav2,
+                    my_node,
+                    rviz
+                ]
+            )
+
             return LaunchDescription([
-                gz_sim,
                 DeclareLaunchArgument('rviz', default_value='true',
                                     description='Open RViz.'),
+                gz_sim,
                 bridge,
+                ignition_spawn_entity,
                 robot_state_publisher,
 
-                #joy,
-
-                ignition_spawn_entity,
-                diff_drive_spawner,
-                joint_broad_spawner,
-
-        #        joy_teleop,
-        #        slam
-                nav2,
-                my_node,
-
-                rviz
+                delayed_actions
             ])
         else:
             return LaunchDescription([
