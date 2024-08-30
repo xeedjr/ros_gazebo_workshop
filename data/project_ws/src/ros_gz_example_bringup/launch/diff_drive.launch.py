@@ -107,12 +107,16 @@ def generate_launch_description():
 
         # Visualize in RViz
         usb_camera = Node(
-            package='v4l2_camera',
-            executable='v4l2_camera_node',
+            package='usb_cam',
+            executable='usb_cam_node_exe',
             output='both',
-            arguments=['-video_device', "/dev/video0",
-            "-pixel_format", "MJPG"],
+            arguments=['--ros-args', '--params-file', os.path.join(pkg_project_bringup, 'config', 'camera.yaml')],
         )
+        # usb_camera = IncludeLaunchDescription(
+        #     PythonLaunchDescriptionSource(os.path.join(get_package_share_directory('usb_cam'), 'launch', 'camera.launch.py')),
+        #     launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'camera.yaml')
+        #                 }.items(),
+        # )
 
         robot_controllers = os.path.join(pkg_project_bringup, 'config', 'diff_drive_controller_velocity.yaml')
         control_node = Node(
