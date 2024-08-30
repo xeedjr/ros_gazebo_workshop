@@ -43,7 +43,8 @@ RUN apt update && apt install -y \
     terminator
 
 RUN apt install -y glmark2
-#RUN apt install -y ros-eloquent-slam-toolbox
+RUN apt install -y ros-humble-slam-toolbox ros-humble-rplidar-ros ros-humble-navigation2 ros-humble-nav2-bringup ros-humble-v4l2-camera ros-humble-hardware-interface ros-humble-ign-ros2-control ros-humble-joint-state-broadcaster ros-humble-velocity-controllers ros-humble-diff-drive-controller
+
 
 # Install ROS dependencies (ideally after ROS installation)
 RUN pip3 install -U rosdep colcon-common-extensions
