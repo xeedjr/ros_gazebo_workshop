@@ -18,8 +18,12 @@
   <depend>navigation2</depend>
   <depend>nav2_bringup</depend>
   <depend>rplidar_ros</depend>
-  <depend>usb_cam</depend>
 
+  <depend>usb_cam</depend>
+  <depend>compressed_depth_image_transport</depend>
+  <depend>compressed_image_transport</depend>
+  <depend>image_transport_plugins</depend>
+  <depend>theora_image_transport</depend>
 
   <depend>ros_gz_example_description</depend>
   <depend>ros_gz_example_gazebo</depend>
