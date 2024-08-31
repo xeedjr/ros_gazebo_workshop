@@ -1,15 +1,16 @@
 /**:
     ros__parameters:
       video_device: "/dev/video0"
-      framerate: 30.0
+      framerate: 3.0
       io_method: "mmap"
       frame_id: "camera"
-      pixel_format: "mjpeg2rgb"  # see usb_cam/supported_formats for list of supported formats
+      #pixel_format: "mjpeg2rgb"  # see usb_cam/supported_formats for list of supported formats
+      pixel_format: "yuyv"  # see usb_cam/supported_formats for list of supported formats
       av_device_format: "YUV422P"
       image_width: 1280
       image_height: 720
       camera_name: "Front_camera"
-      camera_info_url: "package://usb_cam/config/camera_info.yaml"
+      camera_info_url: "package://ros_gz_example_bringup/config/camera_info.yaml"
       brightness: -1
       contrast: -1
       saturation: -1
