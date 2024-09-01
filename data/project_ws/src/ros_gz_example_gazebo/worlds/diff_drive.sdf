@@ -35,6 +35,11 @@
       name="ros_gz_example_gazebo::FullSystem">
     </plugin>
 
+    <physics name="10ms" type="ode">
+      <max_step_size>0.01</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
     <light name="sun" type="directional">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
@@ -84,7 +89,6 @@
     </include>
 
     <model name="turtlebot3_world">
-      <static>true</static>
       <include>
         <uri>
           https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
