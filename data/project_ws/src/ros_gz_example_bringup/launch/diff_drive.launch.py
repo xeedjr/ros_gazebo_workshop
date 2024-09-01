@@ -213,6 +213,14 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
+    robot_localization = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='both',
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
+        )
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -225,6 +233,7 @@ def generate_launch_description():
                     joint_broad_spawner,
                     nav2,
                     my_node,
+                    robot_localization,
                     rviz
                 ]
             )
