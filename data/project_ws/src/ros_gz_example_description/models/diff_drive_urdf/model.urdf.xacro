@@ -325,7 +325,7 @@
   </joint>
  
   <link name="imu_link">
-    <origin rpy="0 0 0" xyz="0 0 0.15"/>
+    <origin rpy="0 0 3.14" xyz="0 0 0.15"/>
     <inertial>
       <mass value="0.001"/>
       <inertia ixx="1.67e-10" iyy="1.67e-10" izz="1.67e-10" ixy="0" ixz="0" iyz="0"/>    </inertial>
@@ -355,7 +355,7 @@
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="imu_link"/>
-    <origin rpy="0 0 0" xyz="0 0 0.15"/>    
+    <origin rpy="0 0 3.14" xyz="0 0 0.15"/>    
   </joint>
 
 </robot>
