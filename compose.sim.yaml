@@ -1,4 +1,4 @@
-#xhost +local:
+#   xhost +local:
 
 services:
   ros2_gazebo:
