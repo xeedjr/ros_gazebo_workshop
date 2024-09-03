@@ -31,6 +31,7 @@
   <depend>hardware_interface</depend>
   <depend>ign_ros2_control</depend>
   
+  <depend>imu_sensor_broadcaster</depend>
   <depend>joint_state_broadcaster</depend>
   <depend>velocity_controllers</depend>
   <depend>diff_drive_controller</depend>

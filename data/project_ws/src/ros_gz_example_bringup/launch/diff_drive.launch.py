@@ -213,6 +213,14 @@ def generate_launch_description():
         arguments=["joint_state_broadcaster"],
     )
 
+    imu_broad_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_sensor_broadcaster"],
+    )
+
+
+
     robot_localization = Node(
         package='robot_localization',
         executable='ekf_node',
@@ -231,6 +239,7 @@ def generate_launch_description():
 
                     diff_drive_spawner,
                     joint_broad_spawner,
+                    imu_broad_spawner,
                     nav2,
                     my_node,
                     robot_localization,
@@ -261,6 +270,7 @@ def generate_launch_description():
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
+                imu_broad_spawner,
 
                 nav2,
                 my_node,
