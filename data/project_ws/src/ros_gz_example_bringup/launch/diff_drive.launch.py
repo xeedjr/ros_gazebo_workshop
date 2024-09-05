@@ -233,7 +233,7 @@ def generate_launch_description():
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
             delayed_actions = TimerAction(
-                period=20.0,
+                period=60.0,
                 actions=[
 
 
