@@ -240,9 +240,9 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     imu_broad_spawner,
+                    robot_localization,
                     nav2,
                     my_node,
-                    robot_localization,
                     rviz
                 ]
             )
@@ -271,6 +271,7 @@ def generate_launch_description():
                 diff_drive_spawner,
                 joint_broad_spawner,
                 imu_broad_spawner,
+                robot_localization,
 
                 nav2,
                 my_node,
