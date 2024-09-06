@@ -37,7 +37,9 @@
   <depend>diff_drive_controller</depend>
 
   <depend>robot_localization</depend>
-  
+  <depend>imu_filter_madgwick</depend>
+   	
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>

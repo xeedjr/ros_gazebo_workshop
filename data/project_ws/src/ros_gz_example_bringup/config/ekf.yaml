@@ -130,7 +130,7 @@ ekf_filter_node:
 
 
 
-        imu0: /imu_sensor_broadcaster/imu
+        imu0: /imu/data
 # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
 # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
 # want to use its Z position value, then set the entire vector to false, except for the third entry. The order of the
@@ -147,9 +147,9 @@ ekf_filter_node:
         imu0_differential: false
         imu0_relative: true
         imu0_queue_size: 20
-        imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-        imu0_twist_rejection_threshold: 0.8                #
-        imu0_linear_acceleration_rejection_threshold: 0.8  #
+        # imu0_pose_rejection_threshold: 2.8                 # Note the difference in parameter names
+        # imu0_twist_rejection_threshold: 2.8                #
+        # imu0_linear_acceleration_rejection_threshold: 2.8  #
 
 # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
 # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.

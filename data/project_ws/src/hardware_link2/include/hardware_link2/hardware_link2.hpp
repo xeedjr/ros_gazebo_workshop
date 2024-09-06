@@ -56,6 +56,15 @@ public:
     };
 };
 
+class IMU {
+
+public:
+  /// \brief An array per IMU with 4 orientation, 3 angular velocity and 3 linear acceleration
+  std::array<double, 10> imu_sensor_data_ = {0};
+
+    IMU() {
+    };
+};
 
 class HardwareLinkInterface : public hardware_interface::SystemInterface
 {
@@ -126,6 +135,7 @@ public:
 private:
 
   Wheel wheels[2];
+  IMU imu_;
   Cfg cfg;
 
   int fd;

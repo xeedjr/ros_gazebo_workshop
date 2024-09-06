@@ -220,6 +220,16 @@ def generate_launch_description():
     )
 
 
+    madgwick_filter = Node(
+        package='imu_filter_madgwick',
+        executable='imu_filter_madgwick_node',
+        name='imu_filter',
+        output='both',
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml')],
+        remappings=[
+            ('/imu/data_raw', '/imu_sensor_broadcaster/imu')
+            ]
+        )
 
     robot_localization = Node(
         package='robot_localization',
@@ -240,6 +250,7 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     imu_broad_spawner,
+                    madgwick_filter,
                     robot_localization,
                     nav2,
                     my_node,
@@ -271,6 +282,7 @@ def generate_launch_description():
                 diff_drive_spawner,
                 joint_broad_spawner,
                 imu_broad_spawner,
+                madgwick_filter,
                 robot_localization,
 
                 nav2,
