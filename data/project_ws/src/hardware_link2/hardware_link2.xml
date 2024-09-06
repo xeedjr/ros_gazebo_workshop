@@ -1,0 +1,9 @@
+<library path="hardware_link2">
+  <class name="hardware_link2/HardwareLinkInterface"
+         type="hardware_link2::HardwareLinkInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control hardware interface.
+    </description>
+  </class>
+</library>
