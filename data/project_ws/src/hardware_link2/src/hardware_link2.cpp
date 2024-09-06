@@ -62,8 +62,8 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
         return CallbackReturn::ERROR;
     }
 
-    cfsetospeed(&tty, B115200);
-    cfsetispeed(&tty, B115200);
+    cfsetospeed(&tty, B921600);
+    cfsetispeed(&tty, B921600);
 
     // Setting raw mode
     cfmakeraw(&tty); // This sets the terminal to raw mode
@@ -348,7 +348,7 @@ hardware_interface::return_type HardwareLinkInterface::read(
             &ax_g, &ay_g, &az_g,
             &gx_rps, &gy_rps, &gz_rps,
             &mx_uT, &my_uT, &mz_uT);
-    if (res != 6) {
+    if (res != 9) {
       std::cerr << "sscanf :" << res << "str: " << buf_res << std::endl;
       return hardware_interface::return_type::ERROR;
     }
