@@ -361,8 +361,25 @@
       <topic>imu</topic>
       <enable_metrics>true</enable_metrics>
       <ignition_frame_id>imu_link</ignition_frame_id>
+      
+      <!-- High Noise Parameters for "Very Bad" Sensor Simulation -->
+      <gaussianNoise>2.0</gaussianNoise> <!-- High noise level -->
+      
+      <bias>
+        <angular_velocity>
+          <x>0.1</x> <!-- Large bias -->
+          <y>0.1</y> <!-- Large bias -->
+          <z>0.1</z> <!-- Large bias -->
+        </angular_velocity>
+        <linear_acceleration>
+          <x>0.5</x> <!-- Large bias -->
+          <y>0.5</y> <!-- Large bias -->
+          <z>0.5</z> <!-- Large bias -->
+        </linear_acceleration>
+      </bias>
     </sensor>
   </gazebo>
+
 
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>

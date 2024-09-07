@@ -122,7 +122,8 @@ def generate_launch_description():
         control_node = Node(
             package="controller_manager",
             executable="ros2_control_node",
-            parameters=[robot_controllers],
+            parameters=[robot_controllers,
+                        {'use_sim_time': use_sim_time}],
             output="both",
             remappings=[
                 ("~/robot_description", "/robot_description"),
@@ -225,19 +226,19 @@ def generate_launch_description():
         executable='imu_filter_madgwick_node',
         name='imu_filter',
         output='both',
-        parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml')],
-        remappings=[
-            ('/imu/data_raw', '/imu_sensor_broadcaster/imu')
-            ]
-        )
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
+                    {'use_sim_time': use_sim_time}],
+        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu')]
+    )
 
     robot_localization = Node(
         package='robot_localization',
         executable='ekf_node',
         name='ekf_filter_node',
         output='both',
-        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
-        )
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml'),
+                    {'use_sim_time': use_sim_time}],
+    )
 
     if (is_debugger == False):
         if (is_sim == True):
