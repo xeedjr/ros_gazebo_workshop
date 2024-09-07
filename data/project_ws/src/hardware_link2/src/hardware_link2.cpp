@@ -360,9 +360,9 @@ hardware_interface::return_type HardwareLinkInterface::read(
     this->imu_.imu_sensor_data_[4] = gx_rps;
     this->imu_.imu_sensor_data_[5] = gy_rps;
     this->imu_.imu_sensor_data_[6] = gz_rps;
-    this->imu_.imu_sensor_data_[7] = ax_g;
-    this->imu_.imu_sensor_data_[8] = ay_g;
-    this->imu_.imu_sensor_data_[9] = az_g;
+    this->imu_.imu_sensor_data_[7] = ax_g*9.80665;
+    this->imu_.imu_sensor_data_[8] = ay_g*9.80665;
+    this->imu_.imu_sensor_data_[9] = az_g*9.80665;
 
 
     // Clear the buffer
