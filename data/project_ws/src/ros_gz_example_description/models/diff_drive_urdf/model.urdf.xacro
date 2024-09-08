@@ -115,15 +115,17 @@
     </visual>
     <collision name='collision_left_wheel'>
       <geometry>
-        <cylinder length="0.03" radius="0.034"/>
+        <cylinder length="0.02677" radius="0.033685"/>
       </geometry>   
     </collision> 
     <gazebo reference="left_wheel">
       <surface>
         <friction>
           <ode>
-            <mu>1.0</mu>
-            <mu2>1.0</mu2>
+            <mu>0.8</mu>
+            <mu2>0.9</mu2>
+            <slip1>0.3</slip1>  <!-- Longitudinal slip -->
+            <slip2>0.1</slip2>  <!-- Lateral slip -->
           </ode>
         </friction>
       </surface>
@@ -157,15 +159,17 @@
     </visual>
     <collision name='collision_right_wheel'>
       <geometry>
-        <cylinder length="0.03" radius="0.034"/>
+        <cylinder length="0.02677" radius="0.033685"/>
       </geometry>
     </collision>   
     <gazebo reference="right_wheel">
       <surface>
         <friction>
           <ode>
-            <mu>1.0</mu>
-            <mu2>1.0</mu2>
+            <mu>0.8</mu>
+            <mu2>0.9</mu2>
+            <slip1>0.35</slip1>  <!-- Longitudinal slip -->
+            <slip2>0.1</slip2>  <!-- Lateral slip -->
           </ode>
         </friction>
       </surface>
@@ -362,21 +366,66 @@
       <enable_metrics>true</enable_metrics>
       <ignition_frame_id>imu_link</ignition_frame_id>
       
-      <!-- High Noise Parameters for "Very Bad" Sensor Simulation -->
-      <gaussianNoise>2.0</gaussianNoise> <!-- High noise level -->
-      
-      <bias>
+      <imu>
         <angular_velocity>
-          <x>0.1</x> <!-- Large bias -->
-          <y>0.1</y> <!-- Large bias -->
-          <z>0.1</z> <!-- Large bias -->
+          <x>
+            <bias>
+              <mean>0.01</mean> <!-- Constant bias for the x-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.05</stddev> <!-- Increased noise for the x-axis -->
+            </noise>
+          </x>
+          <y>
+            <bias>
+              <mean>0.02</mean> <!-- Constant bias for the y-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.05</stddev> <!-- Increased noise for the y-axis -->
+            </noise>
+          </y>
+          <z>
+            <bias>
+              <mean>0.015</mean> <!-- Constant bias for the z-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.05</stddev> <!-- Increased noise for the z-axis -->
+            </noise>
+          </z>
         </angular_velocity>
         <linear_acceleration>
-          <x>0.5</x> <!-- Large bias -->
-          <y>0.5</y> <!-- Large bias -->
-          <z>0.5</z> <!-- Large bias -->
+          <x>
+            <bias>
+              <mean>0.05</mean> <!-- Constant bias for the x-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.3</stddev> <!-- Increased noise for the x-axis -->
+            </noise>
+          </x>
+          <y>
+            <bias>
+              <mean>0.03</mean> <!-- Constant bias for the y-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.3</stddev> <!-- Increased noise for the y-axis -->
+            </noise>
+          </y>
+          <z>
+            <bias>
+              <mean>0.04</mean> <!-- Constant bias for the z-axis -->
+            </bias>
+            <noise type="gaussian">
+              <mean>0.0</mean>
+              <stddev>0.3</stddev> <!-- Increased noise for the z-axis -->
+            </noise>
+          </z>
         </linear_acceleration>
-      </bias>
+      </imu>
     </sensor>
   </gazebo>
 

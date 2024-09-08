@@ -200,24 +200,28 @@ def generate_launch_description():
         package='my_package',
         executable='my_node',
         output='both',
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["diff_drive_base_controller"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     imu_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["imu_sensor_broadcaster"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
 
@@ -244,7 +248,7 @@ def generate_launch_description():
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
             delayed_actions = TimerAction(
-                period=60.0,
+                period=30.0,
                 actions=[
 
 
