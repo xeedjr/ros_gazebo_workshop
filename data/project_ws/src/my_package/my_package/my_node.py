@@ -21,7 +21,7 @@ class MinimalPublisher(Node):
         self.srv = self.create_service(AddTwoInts, 'add_two_ints', self.add_two_ints_callback)
         self.topic_cmd_vel_nav = self.create_subscription(
             Twist,
-            '/cmd_vel_nav',
+            '/cmd_vel',
             self.callback_cmd_vel,
             0)
         self.cmd_vel_pub = self.create_publisher(Twist, '/diff_drive_base_controller/cmd_vel_unstamped', 0)

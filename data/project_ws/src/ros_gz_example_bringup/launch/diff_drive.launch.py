@@ -244,6 +244,15 @@ def generate_launch_description():
                     {'use_sim_time': use_sim_time}],
     )
 
+    robot_calibration_imu = Node(
+        package='robot_calibration',
+        executable='base_calibration_node',
+        name='robot_calibration',
+        output='both',
+        parameters=[{'use_sim_time': use_sim_time}, {'verbose': True}],
+        remappings=[('/imu', '/imu_sensor_broadcaster/imu'), ('/base_scan', '/scan'), ('/odom', '/diff_drive_base_controller/odom')]
+    )
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -255,10 +264,14 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     imu_broad_spawner,
-                    madgwick_filter,
-                    robot_localization,
-                    nav2,
+
+
+
+                    # madgwick_filter,
+                    # robot_localization,
+                    # nav2,
                     my_node,
+                    robot_calibration_imu,
                     rviz
                 ]
             )
