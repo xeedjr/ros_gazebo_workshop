@@ -226,11 +226,16 @@ def generate_launch_description():
 
 
     madgwick_filter = Node(
-        package='imu_filter_madgwick',
-        executable='imu_filter_madgwick_node',
-        name='imu_filter',
+        package='imu_complementary_filter',
+        executable='complementary_filter_node',
+        name='complementary_filter_gain_node',
         output='both',
-        parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
+        parameters=[{'do_bias_estimation': True},
+                    {'do_adaptive_gain': True},
+                    {'use_mag': False},
+                    {'gain_acc': 0.01},
+                    {'gain_mag': 0.01},
+                    {'publish_debug_topics': True},
                     {'use_sim_time': use_sim_time}],
         remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu')]
     )
