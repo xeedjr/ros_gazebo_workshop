@@ -159,11 +159,7 @@ def generate_launch_description():
        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    # slam = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-    #     launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
-    # )
+
     
     # joy = Node(
     #     package='joy',
@@ -185,7 +181,7 @@ def generate_launch_description():
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
-                        'slam': 'True',
+                        'slam': 'False',
                         }.items(),
     )
 
@@ -235,13 +231,30 @@ def generate_launch_description():
         remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu')]
     )
 
-    robot_localization = Node(
+    robot_localization_odom = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_odom',
         output='both',
         parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml'),
                     {'use_sim_time': use_sim_time}],
+        remappings=[('odometry/filtered', 'odometry/local')]    
+    )
+
+    robot_localization_map = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='both',
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml'),
+                    {'use_sim_time': use_sim_time}],
+        remappings=[('odometry/filtered', 'odometry/global')]  
+    )
+
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
+        launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
     )
 
     if (is_debugger == False):
@@ -256,7 +269,9 @@ def generate_launch_description():
                     joint_broad_spawner,
                     imu_broad_spawner,
                     madgwick_filter,
-                    robot_localization,
+                    robot_localization_odom,
+                    robot_localization_map,
+                    slam,
                     nav2,
                     my_node,
                     rviz
