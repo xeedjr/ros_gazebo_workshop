@@ -255,11 +255,11 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     imu_broad_spawner,
-                    madgwick_filter,
-                    robot_localization,
-                    nav2,
+                    # madgwick_filter,
+                    # robot_localization,
+                    # nav2,
                     my_node,
-                    rviz
+                    # rviz
                 ]
             )
 
