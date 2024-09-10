@@ -179,7 +179,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
-                        "map":os.path.join(pkg_project_bringup, 'config', 'warehouse.yaml'),
+                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
                         'slam': 'False',
                         }.items(),
@@ -228,7 +228,7 @@ def generate_launch_description():
         output='both',
         parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
                     {'use_sim_time': use_sim_time}],
-        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu')]
+        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu/calibrated')]
     )
 
     robot_localization_odom = Node(
@@ -299,14 +299,16 @@ def generate_launch_description():
 
 
                 rplidar,
-                usb_camera,
+                # usb_camera,
 
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
                 imu_broad_spawner,
                 madgwick_filter,
-                robot_localization,
+                robot_localization_odom,
+                robot_localization_map,
+                slam,
 
                 nav2,
                 my_node,
