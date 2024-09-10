@@ -179,7 +179,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
-                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
+                        "map":os.path.join(pkg_project_bringup, 'config', 'warehouse.yaml'),
                         'use_sim_time': str(use_sim_time),
                         'slam': 'False',
                         }.items(),
@@ -254,7 +254,10 @@ def generate_launch_description():
     slam = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-        launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
+        launch_arguments={
+            'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
+            'use_sim_time': str(use_sim_time)        
+        }.items(),
     )
 
     if (is_debugger == False):
