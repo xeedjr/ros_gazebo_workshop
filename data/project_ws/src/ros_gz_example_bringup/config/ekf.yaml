@@ -292,17 +292,17 @@ ekf_filter_node_map:
                 pose0_rejection_threshold: 100.0  # Note the difference in parameter name
                 pose0_nodelay: false
 
-                pose1: /amcl_pose
-                pose1_config: [true,  true,  false,
-                        true, true, false,
-                        false, false, false,
-                        false, false, false,
-                        false, false, false]
-                pose1_differential: false
-                pose1_relative: false
-                pose1_queue_size: 5
-                pose1_rejection_threshold: 100.0  # Note the difference in parameter name
-                pose1_nodelay: false
+                # pose0: /amcl_pose
+                # pose0_config: [true,  true,  false,
+                #         false, false, true,
+                #         false, false, false,
+                #         false, false, false,
+                #         false, false, false]
+                # pose0_differential: false
+                # pose0_relative: false
+                # pose0_queue_size: 5
+                # pose0_rejection_threshold: 100.0  # Note the difference in parameter name
+                # pose0_nodelay: false
 
                 imu0: /imu/data
                 imu0_config: [false, false, false,

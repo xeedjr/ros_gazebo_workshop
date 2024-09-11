@@ -1,7 +1,7 @@
 imu_filter:
   ros__parameters:
     stateless: false
-    use_mag: false
+    use_mag: true
     publish_tf: false
     reverse_tf: false
     fixed_frame: "odom"
