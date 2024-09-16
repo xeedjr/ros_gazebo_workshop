@@ -201,6 +201,12 @@ def generate_launch_description():
         output='both',
     )
 
+    map_process_node = Node(
+        package='map_process',
+        executable='my_node',
+        output='both',
+    )
+
     diff_drive_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -233,7 +239,7 @@ def generate_launch_description():
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
             delayed_actions = TimerAction(
-                period=60.0,
+                period=30.0,
                 actions=[
 
 
@@ -243,6 +249,7 @@ def generate_launch_description():
                     robot_localization,
                     nav2,
                     my_node,
+                    map_process_node,
                     rviz
                 ]
             )
