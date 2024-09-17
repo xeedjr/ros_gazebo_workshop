@@ -10,7 +10,13 @@ import cv2
 from cv_bridge import CvBridge
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
-
+import numpy as np
+import cv2
+from nav_msgs.msg import OccupancyGrid
+from std_msgs.msg import Header
+from geometry_msgs.msg import Pose
+from rclpy.qos import QoSProfile
+from geometry_msgs.msg import Pose, Point, Quaternion
 
 class MapProcessor(Node):
 
@@ -86,54 +92,203 @@ class MapProcessor(Node):
         # Publish the additional map
         self.additional_map_publisher.publish(additional_map_msg)
 
-    def process_map(self, map_msg):
-        # Get map metadata
-        width = map_msg.info.width
-        height = map_msg.info.height
-        map_data = np.array(map_msg.data, dtype=np.int8).reshape((height, width))
+    def grayscale_to_raw_occupancy_grid(self, grayscale_image, original_map):
+        # Extract width and height from the original map info
+        original_info = original_map.info
+        width = original_info.width
+        height = original_info.height
+        original_resolution = original_info.resolution
 
-        # Create an empty map initialized with default grayscale values
-        empty_map = np.full((height, width), 50, dtype=np.uint8)  # Default grayscale value
+        # Create an OccupancyGrid message
+        occupancy_grid_msg = OccupancyGrid()
 
-        # Convert the map to 8-bit grayscale image with specified values
-        map_image = np.where(map_data == -1, 50, empty_map)  # -1 becomes 50 (gray for unknown)
-        map_image = np.where(map_data == 0, 20, map_image)    # 0 becomes 20 (black for free)
-        map_image = np.where(map_data > 0, 100, map_image)    # >0 becomes 100 (white for occupied)
+        # Set up the header
+        occupancy_grid_msg.header = Header()
+        occupancy_grid_msg.header.frame_id = original_map.header.frame_id
 
-        # Publish `map_image` as an additional map
-        self.publish_additional_map(map_image, map_msg.info, map_msg.header)
+        # Set the map metadata (resolution, width, height)
+        occupancy_grid_msg.info.resolution = original_resolution  # meters per cell
+        occupancy_grid_msg.info.width = width
+        occupancy_grid_msg.info.height = height
 
-        # Create a transition map for detecting edges from 20 to 50
-        transition_map = np.zeros_like(map_image, dtype=np.uint8)
 
-        # Check horizontal transitions
-        horizontal_transition = (map_image[:, :-1] == 20) & (map_image[:, 1:] == 50)
-        transition_map[:, 1:] |= horizontal_transition
+        # Set the origin of the map (centered)
+        occupancy_grid_msg.info.origin = original_map.info.origin
 
-        # Check vertical transitions
-        vertical_transition = (map_image[:-1, :] == 20) & (map_image[1:, :] == 50)
-        transition_map[1:, :] |= vertical_transition
+        # Flatten the grayscale image to a 1D array
+        flat_image = grayscale_image.flatten()
 
-        # Find contours from the transition map
-        contours, _ = cv2.findContours(transition_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Normalize grayscale values to fit in occupancy grid range [0, 100]
+        # Map grayscale values [0, 255] to occupancy values [0, 100]
+        occupancy_data = np.clip((flat_image / 255.0) * 100, 0, 100).astype(np.uint8)
 
-        contour_centers = []  # Store the centers of valid contours
-        for contour in contours:
-            length = cv2.arcLength(contour, closed=False)
-            if length > 20:  # Filter out contours shorter than 4 pixels
-                M = cv2.moments(contour)
-                if M['m00'] != 0:  # Avoid division by zero
-                    center_x = int(M['m10'] / M['m00'])
-                    center_y = int(M['m01'] / M['m00'])
-                    contour_centers.append((center_x, center_y))
+        # Assign raw data to the OccupancyGrid message
+        occupancy_grid_msg.data = occupancy_data.tolist()
 
-        # Log the detected contour centers
-        self.get_logger().info(f"Detected {len(contour_centers)} contour centers: {contour_centers}")
+        return occupancy_grid_msg
 
-        # Publish the markers
-        self.publish_contour_markers(contour_centers, map_msg.info)
+    def publish_raw_map(self, grayscale_image, map_msg):
+        # Convert the grayscale image to an OccupancyGrid message
+        occupancy_grid_msg = self.grayscale_to_raw_occupancy_grid(grayscale_image, map_msg)
+        # Publish the OccupancyGrid
+        self.additional_map_publisher.publish(occupancy_grid_msg)
+        self.get_logger().info('Published raw map')
+
+    def show_grayscale_map_non_blocking(self, grayscale_image):
+        # Create a named window with the ability to resize
+        cv2.namedWindow('Grayscale Map', cv2.WINDOW_NORMAL)
+        # Display the grayscale image in a non-blocking manner
+        cv2.imshow('Grayscale Map', grayscale_image)
+        # Use a short delay to avoid blocking the execution
+        if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to close the window
+            cv2.destroyAllWindows()
+
+    def map_to_grayscale_image(self, occupancy_grid_msg: OccupancyGrid):
+        # Extract the width, height, and occupancy data
+        width = occupancy_grid_msg.info.width
+        height = occupancy_grid_msg.info.height
+        occupancy_data = np.array(occupancy_grid_msg.data).reshape((height, width))
+
+        # Create an empty grayscale image
+        grayscale_image = np.zeros((height, width), dtype=np.uint8)
+
+        # Assign brightness values
+        # -1 or 255 (unmapped): set to 20
+        # 0 (free space): set to 100
+        # 100 (occupied space): set to 150
+        grayscale_image[occupancy_data == -1] = 20      # Unmapped area
+        grayscale_image[occupancy_data == 0] = 100      # Free space
+        grayscale_image[occupancy_data > 0] = 150       # Occupied space
+
+        return grayscale_image
+
+    def find_pixels_with_brightness(self, image):
+        """
+        Finds pixels in a grayscale image with a brightness of 50 that are 
+        surrounded by at least one pixel with brightness 20, and returns an 
+        output image with the same size, where those pixels are marked with 
+        brightness 255.
         
+        Args:
+            image (numpy.ndarray): Input grayscale image.
+        
+        Returns:
+            numpy.ndarray: Output image with found pixels set to 255, others to 0.
+        """
+        # Create an empty output image filled with zeros (black)
+        output_image = np.zeros_like(image, dtype=np.uint8)
 
+        # Find all pixels with brightness 20
+        target_pixels = np.where(image == 20)
+
+        # Iterate through the target pixels
+        for y, x in zip(*target_pixels):
+            # Extract a 3x3 region around the pixel (ensure we stay within image bounds)
+            roi = image[max(0, y-1):y+2, max(0, x-1):x+2]
+
+            # Check if any pixel in the region has brightness 100
+            if np.any(roi == 100):
+                # Set the corresponding pixel in the output image to 100
+                output_image[y, x] = 100
+
+        return output_image
+
+    def find_non_linear_lines_with_centers(self, image):
+        """
+        Find non-linear lines with length greater than 11 pixels in a grayscale image
+        and return their pixel coordinates along with the center pixel of each line.
+        
+        Parameters:
+        - image: A grayscale image where lines are marked with brightness 100.
+        
+        Returns:
+        - A list of tuples, each containing:
+            - A list of pixel coordinates that form the line.
+            - The center pixel of the line as (x, y).
+        """
+        # Convert image to binary
+        _, binary = cv2.threshold(image, 99, 255, cv2.THRESH_BINARY)
+        
+        # Find contours in the binary image
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        lines_with_centers = []
+        
+        for contour in contours:
+            # Check if contour is a line (length > 11)
+            if cv2.arcLength(contour, True) > 11:
+                # Get the pixel coordinates
+                line_pixels = [tuple(point[0]) for point in contour]
+                
+                # Calculate the center pixel of the line
+                if line_pixels:
+                    center_x = int(np.mean([p[0] for p in line_pixels]))
+                    center_y = int(np.mean([p[1] for p in line_pixels]))
+                    center_pixel = (center_x, center_y)
+                else:
+                    center_pixel = (0, 0)
+                
+                # Append to result
+                lines_with_centers.append((line_pixels, center_pixel))
+        
+        return lines_with_centers
+
+    def create_centered_image(self, image, lines):
+        # Create a zeroed image with the same dimensions as the input image
+        centered_image = np.zeros_like(image, dtype=np.uint8)
+
+        # Draw the centers with brightness 120
+        center_brightness = 120
+        for line in lines:
+            # Compute the center of the line
+            line_array = np.array(line)
+            center = np.mean(line_array, axis=0).astype(int)
+            centered_image[center[0], center[1]] = center_brightness
+
+        return centered_image
+
+    def paint_centers_on_blank_image(self, image, lines_with_centers):
+        """
+        Create a zeroed image with the same size as the input image and paint white pixels
+        at the coordinates of the line centers.
+        
+        Parameters:
+        - image: A grayscale image used to determine the size of the zeroed image.
+        - lines_with_centers: A list of tuples, where each tuple contains:
+            - A list of pixel coordinates that form the line (not used in this function).
+            - The center of the line as (x, y).
+        
+        Returns:
+        - A zeroed image with white pixels painted at the line centers.
+        """
+        # Create a zeroed image with the same size as the input image
+        blank_image = np.zeros_like(image)
+        
+        # Paint white pixels at the line centers
+        for _, center in lines_with_centers:
+            center_x, center_y = center
+            if 0 <= center_x < blank_image.shape[1] and 0 <= center_y < blank_image.shape[0]:
+                blank_image[center_y, center_x] = 255  # Set pixel to white (255)
+        
+        return blank_image
+
+    def process_map(self, map_msg):
+        map_img = self.map_to_grayscale_image(map_msg)
+        
+        map_img = self.find_pixels_with_brightness(map_img)
+
+        self.show_grayscale_map_non_blocking(map_img)
+
+        lines = self.find_non_linear_lines_with_centers(map_img)
+        self.get_logger().info('Lines' + str(lines))
+
+        # Create image with painted centers
+        result_image = self.paint_centers_on_blank_image(map_img, lines)
+        
+        self.show_grayscale_map_non_blocking(result_image)
+
+        self.publish_raw_map(result_image, map_msg)
+        # self.show_grayscale_map_non_blocking(map_img)
 
 
 def main(args=None):
