@@ -10,7 +10,9 @@ import cv2
 from cv_bridge import CvBridge
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
-
+from tf2_ros import TransformListener, Buffer
+from geometry_msgs.msg import TransformStamped
+import math
 
 class MapProcessor(Node):
 
@@ -22,7 +24,82 @@ class MapProcessor(Node):
         self.bridge = CvBridge()
         self.marker_publisher = self.create_publisher(MarkerArray, 'contour_markers', 10)
         self.additional_map_publisher = self.create_publisher(OccupancyGrid, 'additional_map', 10)
+        self.marker_sorted_publisher = self.create_publisher(MarkerArray, 'contour_markers_sorted', 10)
 
+        # Create a buffer and listener for tf2
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        # Subscription to the marker array topic
+        self.marker_sub = self.create_subscription(
+            MarkerArray,
+            '/contour_markers',  # Replace with your actual topic
+            self.marker_callback,
+            10
+        )
+
+    def marker_callback(self, msg: MarkerArray):
+        self.marker_distances = self.get_marker_distances(msg)
+        #self.get_logger().info(f"Markers Distamces: " + str(self.marker_distances))
+        # self.sorted_markers = self.sort_markers_by_distance(self.marker_distances)
+        # self.get_logger().info(f"Markers Distamces: " + str(self.sorted_markers))
+        self.sort_markers_by_distance()
+        #self.get_logger().info(f"Markers Distamces: " + str(self.marker_distances))
+        self.publish_contour_markers_sorted()
+
+
+    def get_marker_distances(self, marker_array):
+        """Function to return list of marker and distance to base_link"""
+        result = []
+        try:
+            # Get the transform from base_link to the world (or the marker's frame)
+            trans: TransformStamped = self.tf_buffer.lookup_transform('base_link', 'map', rclpy.time.Time())
+
+            base_x = trans.transform.translation.x
+            base_y = trans.transform.translation.y
+            base_z = trans.transform.translation.z
+
+            # Calculate distance for each marker
+            for marker in marker_array.markers:
+                marker_x = marker.pose.position.x
+                marker_y = marker.pose.position.y
+                marker_z = marker.pose.position.z
+
+                # Compute Euclidean distance
+                distance = math.sqrt(
+                    (marker_x - base_x) ** 2 + 
+                    (marker_y - base_y) ** 2 +
+                    (marker_z - base_z) ** 2
+                )
+
+                # Append marker and distance to the result list
+                result.append({
+                    'original_marker': marker,
+                    'distance': distance
+                })
+
+        except Exception as e:
+            self.get_logger().warn(f'Could not transform base_link to map: {e}')
+
+        return result
+
+    def sort_markers_by_distance(self):
+        """Sorts the markers by distance in ascending order"""
+        self.marker_distances.sort(key=lambda x: x['distance'])
+
+    def get_distances_list(self):
+        """Returns the list of markers and their distances"""
+        return self.marker_distances
+
+    def publish_contour_markers_sorted(self):
+        marker_array = MarkerArray()
+
+        for x in self.marker_distances:
+            marker = x['original_marker']
+            marker_array.markers.append(marker)
+
+        # Publish the marker array
+        self.marker_sorted_publisher.publish(marker_array)
 
     def publish_contour_markers(self, contour_centers, map_info):
         marker_array = MarkerArray()
