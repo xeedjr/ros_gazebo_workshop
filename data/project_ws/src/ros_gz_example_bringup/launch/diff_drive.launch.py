@@ -268,22 +268,24 @@ def generate_launch_description():
             ])
         else:
             return LaunchDescription([
-                DeclareLaunchArgument('rviz', default_value='true',
-                                    description='Open RViz.'),
-                robot_state_publisher,
+                # DeclareLaunchArgument('rviz', default_value='true',
+                #                     description='Open RViz.'),
+                # robot_state_publisher,
 
 
-                rplidar,
-                usb_camera,
+                # rplidar,
+                # usb_camera,
 
-                control_node,
-                diff_drive_spawner,
-                joint_broad_spawner,
-                imu_broad_spawner,
-                robot_localization,
+                # control_node,
+                # diff_drive_spawner,
+                # joint_broad_spawner,
+                # imu_broad_spawner,
+                # robot_localization,
 
-                nav2,
-                my_node,
+                # nav2,
+                # my_node,
+
+                bno080_node
             ])
     else:
         return LaunchDescription([

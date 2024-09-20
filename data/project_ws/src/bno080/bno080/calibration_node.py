@@ -22,7 +22,7 @@ class MinimalPublisher(Node):
         super().__init__('minimal_publisher')
 
         i2c = busio.I2C(board.SCL, board.SDA)
-        bno = BNO08X_I2C(i2c, debug=False)
+        bno = BNO08X_I2C(i2c, debug=False, address=0x4B)
 
         bno.begin_calibration()
         # TODO: UPDATE UART/SPI
@@ -33,27 +33,27 @@ class MinimalPublisher(Node):
         while True:
             time.sleep(0.1)
 
-            print("Magnetometer:")
+            self.get_logger().info("Magnetometer:")
             mag_x, mag_y, mag_z = bno.magnetic  # pylint:disable=no-member
-            print("X: %0.6f  Y: %0.6f Z: %0.6f uT" % (mag_x, mag_y, mag_z))
-            print("")
+            self.get_logger().info("X: %0.6f  Y: %0.6f Z: %0.6f uT" % (mag_x, mag_y, mag_z))
+            self.get_logger().info("")
 
-            print("Game Rotation Vector Quaternion:")
+            self.get_logger().info("Game Rotation Vector Quaternion:")
             (
                 game_quat_i,
                 game_quat_j,
                 game_quat_k,
                 game_quat_real,
             ) = bno.game_quaternion  # pylint:disable=no-member
-            print(
+            self.get_logger().info(
                 "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f"
                 % (game_quat_i, game_quat_j, game_quat_k, game_quat_real)
             )
             calibration_status = bno.calibration_status
-            print(
-                "Magnetometer Calibration quality:",
-                adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status],
-                " (%d)" % calibration_status,
+            self.get_logger().info(
+                "Magnetometer Calibration quality:" + 
+                str(adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]) + 
+                " ("  + str(calibration_status) + ")"
             )
             if not calibration_good_at and calibration_status >= 2:
                 calibration_good_at = time.monotonic()
@@ -63,9 +63,9 @@ class MinimalPublisher(Node):
                     bno.save_calibration_data()
                     break
                 calibration_good_at = None
-            print("**************************************************************")
+            self.get_logger().info("**************************************************************")
 
-        print("calibration done")
+        self.get_logger().info("calibration done")
 
 
 
