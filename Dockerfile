@@ -49,6 +49,22 @@ RUN apt install -y ros-humble-slam-toolbox ros-humble-rplidar-ros ros-humble-nav
 # Install ROS dependencies (ideally after ROS installation)
 RUN pip3 install -U rosdep colcon-common-extensions
 
+ARG VERSION=6.2.0
+RUN apt update
+RUN DEBIAN_FRONTEND=noninteractive apt install -y build-essential pkg-config libffi-dev wget git gettext python3
+RUN git clone https://github.com/adafruit/circuitpython.git
+WORKDIR /circuitpython
+RUN git checkout $VERSION
+RUN git submodule sync --quiet --recursive
+RUN git submodule update --init
+RUN make -C mpy-cross
+RUN cd ports/raspberrypi && make BOARD=circuitplayground_express TRANSLATION=es && make micropython && make install
+RUN apt-get purge --auto-remove -y build-essential pkg-config libffi-dev wget git gettext python3
+RUN rm -rf /circuitpython
+
+
+RUN pip3 install -U RPI.GPIO adafruit-circuitpython-bno08x adafruit-circuitpython-busdevice
+
 # Environment setup
 RUN echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc
 

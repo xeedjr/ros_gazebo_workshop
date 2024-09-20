@@ -229,6 +229,14 @@ def generate_launch_description():
         parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
         )
 
+    bno080_node = Node(
+        package='bno080',
+        executable='calibration_node',
+        name='calibration_node',
+        output='both',
+        )
+
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -248,14 +256,15 @@ def generate_launch_description():
             )
 
             return LaunchDescription([
-                DeclareLaunchArgument('rviz', default_value='true',
-                                    description='Open RViz.'),
-                gz_sim,
-                bridge,
-                ignition_spawn_entity,
-                robot_state_publisher,
+                # DeclareLaunchArgument('rviz', default_value='true',
+                #                     description='Open RViz.'),
+                # gz_sim,
+                # bridge,
+                # ignition_spawn_entity,
+                # robot_state_publisher,
 
-                delayed_actions
+                # delayed_actions
+                bno080_node
             ])
         else:
             return LaunchDescription([
