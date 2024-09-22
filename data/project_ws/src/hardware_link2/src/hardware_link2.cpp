@@ -62,8 +62,8 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
         return CallbackReturn::ERROR;
     }
 
-    cfsetospeed(&tty, B115200);
-    cfsetispeed(&tty, B115200);
+    cfsetospeed(&tty, B921600);
+    cfsetispeed(&tty, B921600);
 
     // Setting raw mode
     cfmakeraw(&tty); // This sets the terminal to raw mode
@@ -129,6 +129,63 @@ std::vector<hardware_interface::StateInterface> HardwareLinkInterface::export_st
     };    
   }
 
+  // export IMU
+  static const std::map<std::string, size_t> interface_name_map = {
+                {"orientation.x", 0},
+                {"orientation.y", 1},
+                {"orientation.z", 2},
+                {"orientation.w", 3},
+                {"angular_velocity.x", 4},
+                {"angular_velocity.y", 5},
+                {"angular_velocity.z", 6},
+                {"linear_acceleration.x", 7},
+                {"linear_acceleration.y", 8},
+                {"linear_acceleration.z", 9},
+              };
+
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "orientation.x", 
+                                &(this->imu_.imu_sensor_data_[0])));
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "orientation.y", 
+                                &(this->imu_.imu_sensor_data_[1])));
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "orientation.z", 
+                                &(this->imu_.imu_sensor_data_[2])));
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "orientation.w", 
+                                &(this->imu_.imu_sensor_data_[3])));     
+
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "angular_velocity.x", 
+                                &(this->imu_.imu_sensor_data_[4])));                                
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "angular_velocity.y", 
+                                &(this->imu_.imu_sensor_data_[5])));                                
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "angular_velocity.z", 
+                                &(this->imu_.imu_sensor_data_[6])));                                
+
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "linear_acceleration.x", 
+                                &(this->imu_.imu_sensor_data_[7])));                                
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "linear_acceleration.y", 
+                                &(this->imu_.imu_sensor_data_[8])));                                
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+                                "imu_sensor", 
+                                "linear_acceleration.z", 
+                                &(this->imu_.imu_sensor_data_[9])));                                
+
   return state_interfaces;
 }
 
@@ -184,31 +241,31 @@ hardware_interface::return_type HardwareLinkInterface::read(
   wheels[1].state_pos_prev = wheels[1].state_pos;
 //std::cerr << "read state :" << std::endl;
 
-    // Clear the buffer
-    tcflush(fd , TCIFLUSH);
+  // Clear the buffer
+  tcflush(fd , TCIFLUSH);
 
-    // Send "pos\n\r"
-    const char *msg = "pos\r\n";
-    if (::write(fd, msg, strlen(msg)) < 0) {
-        std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
-        close(fd);
-        hardware_interface::return_type::ERROR;
-    }
+  // Send "pos\n\r"
+  const char *msg = "pos\r\n";
+  if (::write(fd, msg, strlen(msg)) < 0) {
+      std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
+      close(fd);
+      hardware_interface::return_type::ERROR;
+  }
 
 
-    // Read until '\r'   Echo
-    char bufp[256];
-    auto sizep = read_buffer(bufp, sizeof(bufp));
+  // Read until '\r'   Echo
+  char bufp[256];
+  auto sizep = read_buffer(bufp, sizeof(bufp));
 //    std::cerr << "read :" << bufp << ":end size: "<< sizep << std::endl;
 
-  // Read until '\r'   Pos
-    char buf[256];
-    auto size = read_buffer(buf, sizeof(buf));
+// Read until '\r'   Pos
+  char buf[256];
+  auto size = read_buffer(buf, sizeof(buf));
 //    std::cerr << "read :" << buf << ":end size: " << size << std::endl;
 
-  // Read until '\r'   Ok
-    char buft[256];
-    auto sizet = read_buffer(buft, sizeof(buft));
+// Read until '\r'   Ok
+  char buft[256];
+  auto sizet = read_buffer(buft, sizeof(buft));
 //    std::cerr << "read :" << buft << ":end size: " << sizet << std::endl;
 
 
@@ -249,8 +306,68 @@ hardware_interface::return_type HardwareLinkInterface::read(
 //std::cerr << "res :  " << res << std::endl;
 //std::cerr << "state :  " << w1 << " wwww " << w2 << ": " << std::endl;
 
+  // Clear the buffer
+  tcflush(fd , TCIFLUSH);
+
+  {
+    // read imus
     // Clear the buffer
     tcflush(fd , TCIFLUSH);
+
+    // Send "pos\n\r"
+    const char *msg = "imu\r\n";
+    if (::write(fd, msg, strlen(msg)) < 0) {
+        std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
+        close(fd);
+        hardware_interface::return_type::ERROR;
+    }
+
+
+    // Read until '\r'   Echo
+    char buf_echo[256];
+    auto sizep = read_buffer(buf_echo, sizeof(buf_echo));
+  //    std::cerr << "read :" << buf_echo << ":end size: "<< sizep << std::endl;
+
+  // Read until '\r'   imu
+    char buf_res[256];
+    auto size = read_buffer(buf_res, sizeof(buf_res));
+  //    std::cerr << "read :" << buf_res << ":end size: " << size << std::endl;
+
+  // Read until '\r'   Ok
+    char buf_ok[256];
+    auto sizet = read_buffer(buf_ok, sizeof(buf_ok));
+  //    std::cerr << "read :" << buf_ok << ":end size: " << sizet << std::endl;
+
+    double ax_g, ay_g, az_g;
+    double gx_rps, gy_rps, gz_rps;
+    double mx_uT, my_uT, mz_uT;
+
+    auto res = sscanf(buf_res, "%lf %lf %lf "
+            "%lf %lf %lf "
+            "%lf %lf %lf", 
+            &ax_g, &ay_g, &az_g,
+            &gx_rps, &gy_rps, &gz_rps,
+            &mx_uT, &my_uT, &mz_uT);
+    if (res != 9) {
+      std::cerr << "sscanf :" << res << "str: " << buf_res << std::endl;
+      return hardware_interface::return_type::ERROR;
+    }
+
+    this->imu_.imu_sensor_data_[0] = 0;
+    this->imu_.imu_sensor_data_[1] = 0;
+    this->imu_.imu_sensor_data_[2] = 0;
+    this->imu_.imu_sensor_data_[3] = 0;
+    this->imu_.imu_sensor_data_[4] = gx_rps;
+    this->imu_.imu_sensor_data_[5] = gy_rps;
+    this->imu_.imu_sensor_data_[6] = gz_rps;
+    this->imu_.imu_sensor_data_[7] = ax_g*9.80665;
+    this->imu_.imu_sensor_data_[8] = ay_g*9.80665;
+    this->imu_.imu_sensor_data_[9] = az_g*9.80665;
+
+
+    // Clear the buffer
+    tcflush(fd , TCIFLUSH);
+  }
 
   return hardware_interface::return_type::OK;
 }
@@ -259,28 +376,28 @@ hardware_interface::return_type HardwareLinkInterface::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   // TODO(anyone): write robot's commands'
-    // Clear the buffer
-    tcflush(fd , TCIFLUSH);
+  // Clear the buffer
+  tcflush(fd , TCIFLUSH);
 
-    char buf[256];
+  char buf[256];
 
-    sprintf(buf, "set %lf %lf\r\n0", wheels[0].cmd_vel, wheels[1].cmd_vel*-1.0);
-    if (::write(fd, buf, strlen(buf)) < 0) {
-        std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
-        close(fd);
-        hardware_interface::return_type::ERROR;
-    }
+  sprintf(buf, "set %lf %lf\r\n0", wheels[0].cmd_vel, wheels[1].cmd_vel*-1.0);
+  if (::write(fd, buf, strlen(buf)) < 0) {
+      std::cerr << "Error " << errno << " writing to " << cfg.device << ": " << strerror(errno) << std::endl;
+      close(fd);
+      hardware_interface::return_type::ERROR;
+  }
 
-    char bufp[256];
-    auto sizep = read_buffer(bufp, sizeof(bufp));
+  char bufp[256];
+  auto sizep = read_buffer(bufp, sizeof(bufp));
 //    std::cerr << "read :" << bufp << ":end"<< std::endl;
 
-    char bufok[256];
-    auto sizeok = read_buffer(bufok, sizeof(bufok));
+  char bufok[256];
+  auto sizeok = read_buffer(bufok, sizeof(bufok));
 //    std::cerr << "read :" << bufok << ":end"<< std::endl;
 
-    // Clear the buffer
-    tcflush(fd , TCIFLUSH);
+  // Clear the buffer
+  tcflush(fd , TCIFLUSH);
 
   return hardware_interface::return_type::OK;
 }

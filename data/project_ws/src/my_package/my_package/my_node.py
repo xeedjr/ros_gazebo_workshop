@@ -9,7 +9,7 @@ import rclpy
 from rclpy.duration import Duration
 
 from example_interfaces.srv import AddTwoInts
-
+from sensor_msgs.msg import Imu
 
 class MinimalPublisher(Node):
 
@@ -25,6 +25,72 @@ class MinimalPublisher(Node):
             self.callback_cmd_vel,
             0)
         self.cmd_vel_pub = self.create_publisher(Twist, '/diff_drive_base_controller/cmd_vel_unstamped', 0)
+
+        # # Subscriber to the IMU topic
+        # self.subscription = self.create_subscription(
+        #     Imu,
+        #     '/imu_sensor_broadcaster/imu',  # Adjust the topic name if necessary
+        #     self.imu_callback,
+        #     10)
+
+        # # Publisher for the calibrated IMU data
+        # self.publisher_ = self.create_publisher(Imu, '/imu_sensor_broadcaster/imu/calibrated', 10)
+
+        # # Variables to store IMU data for calibration
+        # self.accel_x_samples = []
+        # self.accel_y_samples = []
+        # self.accel_z_samples = []
+        # self.gyro_x_samples = []
+        # self.gyro_y_samples = []
+        # self.gyro_z_samples = []
+
+        # self.sample_count = 0
+        # self.calibrated = False
+        # self.mean_accel_x = 0.0
+        # self.mean_accel_y = 0.0
+        # self.mean_accel_z = 0.0
+        # self.mean_gyro_x = 0.0
+        # self.mean_gyro_y = 0.0
+        # self.mean_gyro_z = 0.0
+
+    # def imu_callback(self, msg: Imu):
+    #     if not self.calibrated:
+    #         # Collect first 1000 samples for calibration
+    #         self.accel_x_samples.append(msg.linear_acceleration.x)
+    #         self.accel_y_samples.append(msg.linear_acceleration.y)
+    #         self.accel_z_samples.append(msg.linear_acceleration.z)
+    #         self.gyro_x_samples.append(msg.angular_velocity.x)
+    #         self.gyro_y_samples.append(msg.angular_velocity.y)
+    #         self.gyro_z_samples.append(msg.angular_velocity.z)
+
+    #         self.sample_count += 1
+
+    #         if self.sample_count == 1000:
+    #             # Calculate the mean of the first 1000 samples
+    #             self.mean_accel_x = sum(self.accel_x_samples) / 1000.0
+    #             self.mean_accel_y = sum(self.accel_y_samples) / 1000.0
+    #             self.mean_accel_z = sum(self.accel_z_samples) / 1000.0
+    #             self.mean_gyro_x = sum(self.gyro_x_samples) / 1000.0
+    #             self.mean_gyro_y = sum(self.gyro_y_samples) / 1000.0
+    #             self.mean_gyro_z = sum(self.gyro_z_samples) / 1000.0
+
+    #             self.get_logger().info('Calibration complete')
+    #             self.calibrated = True
+    #     else:
+    #         # Apply the mean values to calibrate the data
+    #         calibrated_msg = Imu()
+    #         calibrated_msg.header = msg.header
+
+    #         # Subtract the mean from the raw IMU data
+    #         calibrated_msg.linear_acceleration.x = msg.linear_acceleration.x
+    #         calibrated_msg.linear_acceleration.y = msg.linear_acceleration.y
+    #         calibrated_msg.linear_acceleration.z = msg.linear_acceleration.z
+    #         calibrated_msg.angular_velocity.x = msg.angular_velocity.x - self.mean_gyro_x
+    #         calibrated_msg.angular_velocity.y = msg.angular_velocity.y - self.mean_gyro_y
+    #         calibrated_msg.angular_velocity.z = msg.angular_velocity.z - self.mean_gyro_z
+
+    #         # Publish the calibrated data
+    #         self.publisher_.publish(calibrated_msg)
 
     def callback_cmd_vel(self, cmd_vel_msg):
 #        self.get_logger().info('cmd_vel_received')

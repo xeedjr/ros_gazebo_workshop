@@ -82,7 +82,12 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        chassis:
+        chassis_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        imu_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
@@ -218,6 +223,56 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /diff_drive/camera
       Value: true
+    - Class: rviz_default_plugins/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        base_link:
+          Value: true
+        camera_link:
+          Value: true
+        caster:
+          Value: true
+        chassis_link:
+          Value: true
+        imu_link:
+          Value: true
+        left_wheel:
+          Value: true
+        lidar_link:
+          Value: true
+        map:
+          Value: true
+        odom:
+          Value: true
+        right_wheel:
+          Value: true
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: false
+      Tree:
+        map:
+          odom:
+            base_link:
+              camera_link:
+                {}
+              caster:
+                {}
+              chassis_link:
+                {}
+              imu_link:
+                {}
+              left_wheel:
+                {}
+              lidar_link:
+                {}
+              right_wheel:
+                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -264,7 +319,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 7.363448619842529
+      Distance: 9.236710548400879
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -304,5 +359,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1850
-  X: 70
-  Y: 27
+  X: 950
+  Y: 132
