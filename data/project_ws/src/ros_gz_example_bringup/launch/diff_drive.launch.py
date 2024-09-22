@@ -262,36 +262,34 @@ def generate_launch_description():
             )
 
             return LaunchDescription([
-                # DeclareLaunchArgument('rviz', default_value='true',
-                #                     description='Open RViz.'),
-                # gz_sim,
-                # bridge,
-                # ignition_spawn_entity,
-                # robot_state_publisher,
+                DeclareLaunchArgument('rviz', default_value='true',
+                                    description='Open RViz.'),
+                gz_sim,
+                bridge,
+                ignition_spawn_entity,
+                robot_state_publisher,
 
-                # delayed_actions
-                bno080_node
+                delayed_actions
             ])
         else:
             return LaunchDescription([
-                # DeclareLaunchArgument('rviz', default_value='true',
-                #                     description='Open RViz.'),
-                # robot_state_publisher,
+                DeclareLaunchArgument('rviz', default_value='true',
+                                    description='Open RViz.'),
+                robot_state_publisher,
 
 
-                # rplidar,
-                # usb_camera,
+                rplidar,
+                usb_camera,
+                bno080_node,
 
-                # control_node,
-                # diff_drive_spawner,
-                # joint_broad_spawner,
-                # imu_broad_spawner,
-                # robot_localization,
+                control_node,
+                diff_drive_spawner,
+                joint_broad_spawner,
+                imu_broad_spawner,
+                robot_localization,
 
-                # nav2,
-                # my_node,
-
-                bno080_node
+                nav2,
+                my_node
             ])
     else:
         return LaunchDescription([
