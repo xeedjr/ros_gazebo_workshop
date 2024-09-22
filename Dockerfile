@@ -1,4 +1,4 @@
-#FROM ubuntu:22.04
+# FROM ubuntu:22.04
 FROM nvidia/opengl:1.0-glvnd-devel-ubuntu22.04
 
 ENV LANG en_US.UTF-8
@@ -48,6 +48,8 @@ RUN apt install -y ros-humble-slam-toolbox ros-humble-rplidar-ros ros-humble-nav
 
 # Install ROS dependencies (ideally after ROS installation)
 RUN pip3 install -U rosdep colcon-common-extensions
+
+RUN pip3 install -U RPI.GPIO adafruit-circuitpython-bno08x adafruit-circuitpython-busdevice
 
 # Environment setup
 RUN echo 'source /opt/ros/humble/setup.bash' >> ~/.bashrc
