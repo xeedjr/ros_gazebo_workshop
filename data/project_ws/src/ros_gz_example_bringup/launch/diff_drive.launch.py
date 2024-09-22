@@ -228,8 +228,8 @@ def generate_launch_description():
         output='both',
         parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
                     {'use_sim_time': use_sim_time}],
-        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu'),
-                    ('/imu/mag', '/magnetometer')]
+        remappings=[('/imu/data_raw', '/bno080/imu'),
+                    ('/imu/mag', '/bno080/mag')]
     )
 
     robot_localization_odom = Node(
