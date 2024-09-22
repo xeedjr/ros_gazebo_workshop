@@ -229,6 +229,20 @@ def generate_launch_description():
         parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
         )
 
+    bno080_calibration_node = Node(
+        package='bno080',
+        executable='calibration_node',
+        name='calibration_node',
+        output='both',
+        )
+
+    bno080_node = Node(
+        package='bno080',
+        executable='bno080_node',
+        name='bno080_node',
+        output='both',
+        )
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -266,6 +280,7 @@ def generate_launch_description():
 
                 rplidar,
                 usb_camera,
+                bno080_node,
 
                 control_node,
                 diff_drive_spawner,
@@ -274,7 +289,7 @@ def generate_launch_description():
                 robot_localization,
 
                 nav2,
-                my_node,
+                my_node
             ])
     else:
         return LaunchDescription([
