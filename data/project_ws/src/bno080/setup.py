@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'calibration_node = bno080.calibration_node:main'
+            'calibration_node = bno080.calibration_node:main',
+            'bno080_node = bno080.bno080_node:main'
         ],
     },
 )

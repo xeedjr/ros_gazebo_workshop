@@ -229,13 +229,19 @@ def generate_launch_description():
         parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
         )
 
-    bno080_node = Node(
+    bno080_calibration_node = Node(
         package='bno080',
         executable='calibration_node',
         name='calibration_node',
         output='both',
         )
 
+    bno080_node = Node(
+        package='bno080',
+        executable='bno080_node',
+        name='bno080_node',
+        output='both',
+        )
 
     if (is_debugger == False):
         if (is_sim == True):
