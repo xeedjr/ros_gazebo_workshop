@@ -1,14 +1,7 @@
 import rclpy
 from rclpy.node import Node
-
-from std_msgs.msg import String
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import PoseStamped
-from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
-import rclpy
-from rclpy.duration import Duration
-
-from example_interfaces.srv import AddTwoInts
+from sensor_msgs.msg import Imu, MagneticField
+from std_msgs.msg import Header  # For timestamp and frame_id
 import time
 import board
 import busio
@@ -21,72 +14,89 @@ class MinimalPublisher(Node):
     def __init__(self):
         super().__init__('minimal_publisher')
 
+        # Create publishers for IMU and Magnetometer data
+        self.imu_publisher_ = self.create_publisher(Imu, 'imu/data', 10)
+        self.mag_publisher_ = self.create_publisher(MagneticField, 'imu/mag', 10)
+
+        # Set up the I2C connection to the BNO08X sensor
         i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
-        bno = BNO08X_I2C(i2c, address=0x4B)
+        self.bno = BNO08X_I2C(i2c, address=0x4B)
 
-        bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
-        bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
-        bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
-        bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
-        bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
+        # Enable the BNO08X features
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ACCELEROMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_GYROSCOPE)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_MAGNETOMETER)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_LINEAR_ACCELERATION)
+        self.bno.enable_feature(adafruit_bno08x.BNO_REPORT_ROTATION_VECTOR)
 
-        while True:
-            time.sleep(0.1)
+        # Create a timer to periodically publish the IMU and Magnetometer data
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
-            self.get_logger().info("Acceleration:")
-            accel_x, accel_y, accel_z = bno.acceleration  # pylint:disable=no-member
-            self.get_logger().info("X: %0.6f  Y: %0.6f Z: %0.6f  m/s^2" % (accel_x, accel_y, accel_z))
-            self.get_logger().info("")
+    def timer_callback(self):
+        # --- Publish IMU data ---
+        imu_msg = Imu()
 
-            self.get_logger().info("Gyro:")
-            gyro_x, gyro_y, gyro_z = bno.gyro  # pylint:disable=no-member
-            self.get_logger().info("X: %0.6f  Y: %0.6f Z: %0.6f rads/s" % (gyro_x, gyro_y, gyro_z))
-            self.get_logger().info("")
+        # Add timestamp and frame_id
+        imu_msg.header.stamp = self.get_clock().now().to_msg()  # Add current time
+        imu_msg.header.frame_id = "imu_link"  # Set frame ID
 
-            self.get_logger().info("Magnetometer:")
-            mag_x, mag_y, mag_z = bno.magnetic  # pylint:disable=no-member
-            self.get_logger().info("X: %0.6f  Y: %0.6f Z: %0.6f uT" % (mag_x, mag_y, mag_z))
-            self.get_logger().info("")
+        # Get IMU sensor data
+        accel_x, accel_y, accel_z = self.bno.acceleration
+        gyro_x, gyro_y, gyro_z = self.bno.gyro
+        quat_i, quat_j, quat_k, quat_real = self.bno.quaternion
 
-            self.get_logger().info("Linear Acceleration:")
-            (
-                linear_accel_x,
-                linear_accel_y,
-                linear_accel_z,
-            ) = bno.linear_acceleration  # pylint:disable=no-member
-            self.get_logger().info(
-                "X: %0.6f  Y: %0.6f Z: %0.6f m/s^2"
-                % (linear_accel_x, linear_accel_y, linear_accel_z)
-            )
-            self.get_logger().info("")
+        # Fill the IMU message
+        imu_msg.linear_acceleration.x = accel_x
+        imu_msg.linear_acceleration.y = accel_y
+        imu_msg.linear_acceleration.z = accel_z
 
-            self.get_logger().info("Rotation Vector Quaternion:")
-            quat_i, quat_j, quat_k, quat_real = bno.quaternion  # pylint:disable=no-member
-            self.get_logger().info(
-                "I: %0.6f  J: %0.6f K: %0.6f  Real: %0.6f" % (quat_i, quat_j, quat_k, quat_real)
-            )
-            self.get_logger().info("")
+        imu_msg.angular_velocity.x = gyro_x
+        imu_msg.angular_velocity.y = gyro_y
+        imu_msg.angular_velocity.z = gyro_z
 
-            calibration_status = bno.calibration_status
-            self.get_logger().info(
-                "Magnetometer Calibration quality:" + 
-                str(adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]) + 
-                " ("  + str(calibration_status) + ")"
-            )
-            
+        imu_msg.orientation.x = quat_i
+        imu_msg.orientation.y = quat_j
+        imu_msg.orientation.z = quat_k
+        imu_msg.orientation.w = quat_real
+
+        # Publish the IMU message
+        self.imu_publisher_.publish(imu_msg)
+        self.get_logger().info(f"Published IMU data: {imu_msg}")
+
+        # --- Publish Magnetometer data ---
+        mag_msg = MagneticField()
+
+        # Add timestamp and frame_id
+        mag_msg.header.stamp = self.get_clock().now().to_msg()  # Add current time
+        mag_msg.header.frame_id = "imu_link"  # Set frame ID
+
+        # Get Magnetometer data
+        mag_x, mag_y, mag_z = self.bno.magnetic
+
+        # Fill the MagneticField message
+        mag_msg.magnetic_field.x = mag_x
+        mag_msg.magnetic_field.y = mag_y
+        mag_msg.magnetic_field.z = mag_z
+
+        # Publish the Magnetometer message
+        self.mag_publisher_.publish(mag_msg)
+        self.get_logger().info(f"Published Magnetometer data: {mag_msg}")
+
+        calibration_status = self.bno.calibration_status
+        self.get_logger().info(
+            "Magnetometer Calibration quality:" + 
+            str(adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]) + 
+            " ("  + str(calibration_status) + ")"
+        )
+        
 def main(args=None):
     rclpy.init(args=args)
-
     minimal_publisher = MinimalPublisher()
-
     rclpy.spin(minimal_publisher)
 
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
+    # Cleanup
     minimal_publisher.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
