@@ -34,7 +34,7 @@
       <state_interface name="position"/>
       <state_interface name="velocity"/>
     </joint>
-    <sensor name="imu_sensor">
+    <!-- <sensor name="imu_sensor">
       <state_interface name="orientation.x"/>
       <state_interface name="orientation.y"/>
       <state_interface name="orientation.z"/>
@@ -45,7 +45,7 @@
       <state_interface name="linear_acceleration.x"/>
       <state_interface name="linear_acceleration.y"/>
       <state_interface name="linear_acceleration.z"/>
-    </sensor>
+    </sensor> -->
   </ros2_control>
 
 
@@ -345,7 +345,7 @@
   </joint>
  
   <link name="imu_link">
-    <origin rpy="0 0 3.14" xyz="0 0 0"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
     <inertial>
       <mass value="0.001"/>
       <inertia ixx="1.67e-10" iyy="1.67e-10" izz="1.67e-10" ixy="0" ixz="0" iyz="0"/>    </inertial>
@@ -437,11 +437,11 @@
   <joint name="imu_joint" type="fixed">
     <parent link="base_link"/>
     <child link="imu_link"/>
-    <origin rpy="0 0 3.14" xyz="0 0 0"/>    
+    <origin rpy="0 0 0" xyz="0 0 0"/>    
   </joint>
 
   <link name="magnetometer_link">
-    <origin rpy="0 0 3.14" xyz="0 0 0"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
     <inertial>
       <mass value="0.001"/>
       <inertia ixx="1.67e-10" iyy="1.67e-10" izz="1.67e-10" ixy="0" ixz="0" iyz="0"/>    </inertial>
@@ -492,7 +492,7 @@
   <joint name="magnetometer_joint" type="fixed">
     <parent link="base_link"/>
     <child link="magnetometer_link"/>
-    <origin rpy="0 0 3.14" xyz="0 0 0"/>    
+    <origin rpy="0 0 0" xyz="0 0 0"/>    
   </joint>
 
 </robot>

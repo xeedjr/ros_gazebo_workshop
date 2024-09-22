@@ -213,12 +213,12 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
-    imu_broad_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["imu_sensor_broadcaster"],
-        parameters=[{'use_sim_time': use_sim_time}],
-    )
+    # imu_broad_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["imu_sensor_broadcaster"],
+    #     parameters=[{'use_sim_time': use_sim_time}],
+    # )
 
 
     madgwick_filter = Node(
@@ -321,7 +321,7 @@ def generate_launch_description():
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
-                imu_broad_spawner,
+                # imu_broad_spawner,
                 madgwick_filter,
                 robot_localization_odom,
                 robot_localization_map,
