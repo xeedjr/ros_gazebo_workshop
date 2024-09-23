@@ -28,8 +28,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration
-
-
+from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
 
 
@@ -131,6 +130,13 @@ def generate_launch_description():
             arguments=['--ros-args', '--log-level', 'info']
         )
 
+        bno080_node = Node(
+            package='bno080',
+            executable='bno080_node',
+            name='bno080_node',
+            output='both',
+            )
+            
         rplidar = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory('rplidar_ros'), 'launch', 'rplidar_a1_launch.py')),
@@ -268,11 +274,12 @@ def generate_launch_description():
         output='both',
         )
 
-    bno080_node = Node(
-        package='bno080',
-        executable='bno080_node',
-        name='bno080_node',
-        output='both',
+    foxglove_bridge = IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(os.path.join(
+                                            get_package_share_directory('foxglove_bridge'),
+                                            'launch',
+                                            'foxglove_bridge_launch.xml'
+                                        ))
         )
 
     if (is_debugger == False):
@@ -285,14 +292,15 @@ def generate_launch_description():
 
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    imu_broad_spawner,
+                    # imu_broad_spawner,
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
                     slam,
                     nav2,
                     my_node,
-                    rviz
+                    rviz,
+                    foxglove_bridge
                 ]
             )
 
@@ -328,7 +336,8 @@ def generate_launch_description():
                 slam,
 
                 nav2,
-                my_node
+                my_node,
+                foxglove_bridge
             ])
     else:
         return LaunchDescription([

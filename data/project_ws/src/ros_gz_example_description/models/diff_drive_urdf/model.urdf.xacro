@@ -370,7 +370,7 @@
       <enable_metrics>true</enable_metrics>
       <ignition_frame_id>imu_link</ignition_frame_id>
       
-      <!-- <imu>
+      <imu>
         <angular_velocity>
           <x>
             <bias>
@@ -429,7 +429,7 @@
             </noise>
           </z>
         </linear_acceleration>
-      </imu> -->
+      </imu>
     </sensor>
   </gazebo>
 

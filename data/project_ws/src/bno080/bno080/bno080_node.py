@@ -70,13 +70,13 @@ class MinimalPublisher(Node):
         mag_msg.header.stamp = self.get_clock().now().to_msg()  # Add current time
         mag_msg.header.frame_id = "magnetometer_link"  # Set frame ID
 
-        # Get Magnetometer data
+        # Get Magnetometer data (in microteslas)
         mag_x, mag_y, mag_z = self.bno.magnetic
 
-        # Fill the MagneticField message
-        mag_msg.magnetic_field.x = mag_x
-        mag_msg.magnetic_field.y = mag_y
-        mag_msg.magnetic_field.z = mag_z
+        # Convert microteslas to teslas
+        mag_msg.magnetic_field.x = mag_x * 1e-6
+        mag_msg.magnetic_field.y = mag_y * 1e-6
+        mag_msg.magnetic_field.z = mag_z * 1e-6
 
         # Publish the Magnetometer message
         self.mag_publisher_.publish(mag_msg)
