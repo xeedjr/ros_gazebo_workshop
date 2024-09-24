@@ -205,7 +205,7 @@ class MapProcessor(Node):
                     contour_centers.append((center_x, center_y))
 
         # Log the detected contour centers
-        self.get_logger().info(f"Detected {len(contour_centers)} contour centers: {contour_centers}")
+        # self.get_logger().info(f"Detected {len(contour_centers)} contour centers: {contour_centers}")
 
         # Publish the markers
         self.publish_contour_markers(contour_centers, map_msg.info)
