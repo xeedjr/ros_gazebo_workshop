@@ -33,9 +33,8 @@ class MinimalPublisher(Node):
             10
         )
 
-        self.current_position_marker = Marker()
-        self.current_position_marker.pose.position.x = 0.0
-        self.current_position_marker.pose.position.y = 0.0
+        self.prevoius_used_markers = MarkerArray()
+
         self.navigator = BasicNavigator()
 
         #Set our demo's initial pose
@@ -81,24 +80,27 @@ class MinimalPublisher(Node):
         if self.navigator.isTaskComplete():
             # Process next marker
 
-            if self.current_position_marker.pose.position.x == msg.markers[0].pose.position.x:
-                self.current_position_marker = msg.markers[1]
-            else:
-                self.current_position_marker = msg.markers[0]
+            current_marker = None
+            for marker in msg.markers:
+                if marker.id not in [m.id for m in self.prevoius_used_markers.markers]:
+                    current_marker = marker
+                    break
 
-            # Go to our demos first goal pose
-            goal_pose = PoseStamped()
-            goal_pose.header.frame_id = 'map'
-            goal_pose.header.stamp = self.navigator.get_clock().now().to_msg()
-            goal_pose.pose.position.x = self.current_position_marker.pose.position.x
-            goal_pose.pose.position.y = self.current_position_marker.pose.position.y
-            goal_pose.pose.orientation.w = 1.0
+            if current_marker:
+                # Create goal pose based on current marker
+                goal_pose = PoseStamped()
+                goal_pose.header.frame_id = 'map'
+                goal_pose.header.stamp = self.navigator.get_clock().now().to_msg()
+                goal_pose.pose.position.x = current_marker.pose.position.x
+                goal_pose.pose.position.y = current_marker.pose.position.y
+                goal_pose.pose.orientation.w = 1.0
 
-            # sanity check a valid path exists
-            # path = navigator.getPath(initial_pose, goal_pose)
+                # sanity check a valid path exists
+                # path = navigator.getPath(initial_pose, goal_pose)
 
-            self.navigator.goToPose(goal_pose)
-            
+                self.navigator.goToPose(goal_pose)
+
+                self.prevoius_used_markers.markers.append(current_marker)
         else:
             # Wait for ending
             pass

@@ -52,12 +52,18 @@ class MapProcessor(Node):
         """Function to return list of marker and distance to base_link"""
         result = []
         try:
-            # Get the transform from base_link to the world (or the marker's frame)
-            trans: TransformStamped = self.tf_buffer.lookup_transform('base_link', 'map', rclpy.time.Time())
+            # Get the current transform from base_link to map
+            trans: TransformStamped = self.tf_buffer.lookup_transform(
+                'map',  # Target frame
+                'base_link',  # Source frame
+                rclpy.time.Time() 
+            )
 
             base_x = trans.transform.translation.x
             base_y = trans.transform.translation.y
             base_z = trans.transform.translation.z
+
+            self.get_logger().info(f"base X: {base_x} Y: {base_y}")
 
             # Calculate distance for each marker
             for marker in marker_array.markers:
@@ -137,7 +143,7 @@ class MapProcessor(Node):
             marker.color.b = 0.0
             marker.color.a = 1.0  # Fully visible
 
-            marker.lifetime = rclpy.duration.Duration(seconds=0.0).to_msg()  # Marker is persistent
+            marker.lifetime = rclpy.duration.Duration(seconds=1.0).to_msg()  # Marker is persistent
 
             marker_array.markers.append(marker)
 
