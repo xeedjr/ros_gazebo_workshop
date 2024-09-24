@@ -121,8 +121,7 @@ def generate_launch_description():
         control_node = Node(
             package="controller_manager",
             executable="ros2_control_node",
-            parameters=[robot_controllers,
-                        {'use_sim_time': use_sim_time}],
+            parameters=[robot_controllers],
             output="both",
             remappings=[
                 ("~/robot_description", "/robot_description"),
@@ -296,8 +295,8 @@ def generate_launch_description():
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
-                    slam,
-                    nav2,
+                    # slam,
+                    # nav2,
                     my_node,
                     rviz,
                     foxglove_bridge
