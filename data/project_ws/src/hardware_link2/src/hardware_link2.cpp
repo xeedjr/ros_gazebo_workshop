@@ -62,8 +62,8 @@ hardware_interface::CallbackReturn HardwareLinkInterface::on_init(
         return CallbackReturn::ERROR;
     }
 
-    cfsetospeed(&tty, B921600);
-    cfsetispeed(&tty, B921600);
+    cfsetospeed(&tty, B115200);
+    cfsetispeed(&tty, B115200);
 
     // Setting raw mode
     cfmakeraw(&tty); // This sets the terminal to raw mode
@@ -182,7 +182,7 @@ hardware_interface::return_type HardwareLinkInterface::read(
 
   wheels[0].state_pos_prev = wheels[0].state_pos;
   wheels[1].state_pos_prev = wheels[1].state_pos;
-std::cerr << "read state enter: " << std::endl;
+// std::cerr << "read state enter: " << std::endl;
 
   // Clear the buffer
   tcflush(fd , TCIFLUSH);
@@ -199,17 +199,17 @@ std::cerr << "read state enter: " << std::endl;
   // Read until '\r'   Echo
   char bufp[256];
   auto sizep = read_buffer(bufp, sizeof(bufp));
-//    std::cerr << "read :" << bufp << ":end size: "<< sizep << std::endl;
+  //  std::cerr << "read :" << bufp << ":end size: "<< sizep << std::endl;
 
 // Read until '\r'   Pos
   char buf[256];
   auto size = read_buffer(buf, sizeof(buf));
-//    std::cerr << "read :" << buf << ":end size: " << size << std::endl;
+  //  std::cerr << "read :" << buf << ":end size: " << size << std::endl;
 
 // Read until '\r'   Ok
   char buft[256];
   auto sizet = read_buffer(buft, sizeof(buft));
-//    std::cerr << "read :" << buft << ":end size: " << sizet << std::endl;
+  //  std::cerr << "read :" << buft << ":end size: " << sizet << std::endl;
 
 
   double w1_pos = 0;
@@ -252,7 +252,7 @@ std::cerr << "read state enter: " << std::endl;
   // Clear the buffer
   tcflush(fd , TCIFLUSH);
 
-std::cerr << "read state exit:" << std::endl;
+// std::cerr << "read state exit:" << std::endl;
 
   return hardware_interface::return_type::OK;
 }
@@ -260,7 +260,7 @@ std::cerr << "read state exit:" << std::endl;
 hardware_interface::return_type HardwareLinkInterface::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  std::cerr << "write state enter:" << std::endl;
+  // std::cerr << "write state enter:" << std::endl;
 
   // TODO(anyone): write robot's commands'
   // Clear the buffer
@@ -277,16 +277,16 @@ hardware_interface::return_type HardwareLinkInterface::write(
 
   char bufp[256];
   auto sizep = read_buffer(bufp, sizeof(bufp));
-//    std::cerr << "read :" << bufp << ":end"<< std::endl;
+  //  std::cerr << "read :" << bufp << ":end"<< std::endl;
 
   char bufok[256];
   auto sizeok = read_buffer(bufok, sizeof(bufok));
-//    std::cerr << "read :" << bufok << ":end"<< std::endl;
+  //  std::cerr << "read :" << bufok << ":end"<< std::endl;
 
   // Clear the buffer
   tcflush(fd , TCIFLUSH);
 
-std::cerr << "write state exit:" << std::endl;
+// std::cerr << "write state exit:" << std::endl;
 
   return hardware_interface::return_type::OK;
 }

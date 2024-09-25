@@ -81,7 +81,7 @@ class HardwareLinkInterface : public hardware_interface::SystemInterface
         }
         if (n == 0) {
             // No data available (timeout or end-of-file)
-            std::cerr << "Timeout" << std::endl;
+            std::cerr << "Timeout received size: " << index << std::endl;
             return 0;
         }
         if (buff[index] == '\n') {
