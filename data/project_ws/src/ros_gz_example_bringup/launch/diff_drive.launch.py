@@ -101,6 +101,7 @@ def generate_launch_description():
                     '-z', '0.15'],
 
             )
+
     else:
         use_sim_time = False
 
@@ -165,7 +166,19 @@ def generate_launch_description():
     )
 
 
-    
+    if (is_sim == True):
+        nav2_config_file = 'nav2_params_sim.yaml'
+    else:
+        nav2_config_file = 'nav2_params_rpi.yaml'
+    nav2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
+        launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', nav2_config_file),
+                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
+                        'use_sim_time': str(use_sim_time),
+                        'slam': 'False',
+                        }.items(),
+    )
     # joy = Node(
     #     package='joy',
     #     executable='joy_node',
@@ -180,15 +193,7 @@ def generate_launch_description():
     #                         "joy_vel": '/diff_drive_base_controller/cmd_vel_unstamped'}.items(),
     # )
 
-    nav2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
-        launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
-                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
-                        'use_sim_time': str(use_sim_time),
-                        'slam': 'False',
-                        }.items(),
-    )
+
 
     # joy = Node(
     #     package='teleop_twist_joy',
@@ -301,8 +306,8 @@ def generate_launch_description():
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
-                    # slam,
-                    # nav2,
+                    slam,
+                    nav2,
                     my_node,
 
                     foxglove_bridge,
@@ -329,7 +334,6 @@ def generate_launch_description():
 
 
                 rplidar,
-
                 #usb_camera,
                 bno080_node,
 
