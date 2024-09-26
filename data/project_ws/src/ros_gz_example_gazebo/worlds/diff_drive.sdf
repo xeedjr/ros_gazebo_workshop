@@ -90,14 +90,12 @@
       </include>
     </model>
 
-
     <!-- <include>
     <pose>7.4 2.0 -2.81 0 0 0</pose>
     <uri>
     https://fuel.gazebosim.org/1.0/OpenRobotics/models/Fortress island
     </uri>
     </include> -->
-
 
     <!-- <model name="turtlebot3_world">
       <static>1</static>
