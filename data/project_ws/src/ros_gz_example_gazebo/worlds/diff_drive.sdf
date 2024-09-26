@@ -88,7 +88,7 @@
           https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
         </uri>
       </include>
-    </model> 
+    </model>
 
     <!-- <include>
     <pose>7.4 2.0 -2.81 0 0 0</pose>

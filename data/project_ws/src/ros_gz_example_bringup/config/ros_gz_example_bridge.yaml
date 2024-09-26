@@ -54,3 +54,8 @@
   # ros_type_name: "sensor_msgs/msg/Imu"
   # gz_type_name: "gz.msgs.IMU"
   # direction: GZ_TO_ROS
+- ros_topic_name: "/magnetometer"
+  gz_topic_name: "/magnetometer"
+  ros_type_name: "sensor_msgs/msg/MagneticField"
+  gz_type_name: "gz.msgs.Magnetometer"
+  direction: GZ_TO_ROS

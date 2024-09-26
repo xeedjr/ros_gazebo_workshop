@@ -9,7 +9,7 @@ import rclpy
 from rclpy.duration import Duration
 from visualization_msgs.msg import Marker, MarkerArray
 from example_interfaces.srv import AddTwoInts
-
+from sensor_msgs.msg import Imu
 
 class MinimalPublisher(Node):
 

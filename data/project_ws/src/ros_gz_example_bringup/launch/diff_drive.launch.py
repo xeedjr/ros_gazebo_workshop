@@ -99,7 +99,7 @@ def generate_launch_description():
                     '-allow_renaming', 'true',
                     '-x', '-1',
                     '-y', '0',
-                    '-z', '0.01'],
+                    '-z', '0.15'],
 
             )
     else:
@@ -122,7 +122,8 @@ def generate_launch_description():
         control_node = Node(
             package="controller_manager",
             executable="ros2_control_node",
-            parameters=[robot_controllers],
+            parameters=[robot_controllers,
+                        {'use_sim_time': use_sim_time}],
             output="both",
             remappings=[
                 ("~/robot_description", "/robot_description"),
@@ -158,11 +159,7 @@ def generate_launch_description():
        condition=IfCondition(LaunchConfiguration('rviz'))
     )
 
-    # slam = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-    #     launch_arguments={'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml')}.items(),
-    # )
+
     
     # joy = Node(
     #     package='joy',
@@ -184,7 +181,7 @@ def generate_launch_description():
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
-                        'slam': 'True',
+                        'slam': 'False',
                         }.items(),
     )
 
@@ -199,6 +196,7 @@ def generate_launch_description():
         package='my_package',
         executable='my_node',
         output='both',
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     map_process_node = Node(
@@ -211,28 +209,76 @@ def generate_launch_description():
         package="controller_manager",
         executable="spawner",
         arguments=["diff_drive_base_controller"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     joint_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["joint_state_broadcaster"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
     imu_broad_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=["imu_sensor_broadcaster"],
+        parameters=[{'use_sim_time': use_sim_time}],
     )
 
 
+    madgwick_filter = Node(
+        package='imu_filter_madgwick',
+        executable='imu_filter_madgwick_node',
+        name='imu_filter',
+        output='both',
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
+                    {'use_sim_time': use_sim_time}],
+        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu'),
+                    ('/imu/mag', '/magnetometer')]
+    )
 
-    robot_localization = Node(
+    robot_localization_odom = Node(
         package='robot_localization',
         executable='ekf_node',
-        name='ekf_filter_node',
+        name='ekf_filter_node_odom',
         output='both',
-        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml')],
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml'),
+                    {'use_sim_time': use_sim_time}],
+        remappings=[('odometry/filtered', 'odometry/local')]    
+    )
+
+    robot_localization_map = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node_map',
+        output='both',
+        parameters=[os.path.join(pkg_project_bringup, 'config', 'ekf.yaml'),
+                    {'use_sim_time': use_sim_time}],
+        remappings=[('odometry/filtered', 'odometry/global')]  
+    )
+
+    slam = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
+        launch_arguments={
+            'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
+            'use_sim_time': str(use_sim_time)        
+        }.items(),
+    )
+
+    bno080_calibration_node = Node(
+        package='bno080',
+        executable='calibration_node',
+        name='calibration_node',
+        output='both',
+        )
+
+    bno080_node = Node(
+        package='bno080',
+        executable='bno080_node',
+        name='bno080_node',
+        output='both',
         )
 
     if (is_debugger == False):
@@ -246,7 +292,10 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     imu_broad_spawner,
-                    robot_localization,
+                    madgwick_filter,
+                    robot_localization_odom,
+                    robot_localization_map,
+                    slam,
                     nav2,
                     my_node,
                     map_process_node,
@@ -272,16 +321,21 @@ def generate_launch_description():
 
 
                 rplidar,
-                usb_camera,
+
+                #usb_camera,
+                bno080_node,
 
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
                 imu_broad_spawner,
-                robot_localization,
+                madgwick_filter,
+                robot_localization_odom,
+                robot_localization_map,
+                slam,
 
                 nav2,
-                my_node,
+                my_node
             ])
     else:
         return LaunchDescription([
