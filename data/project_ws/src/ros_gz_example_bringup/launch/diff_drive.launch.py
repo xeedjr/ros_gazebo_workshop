@@ -348,6 +348,7 @@ def generate_launch_description():
 
                 nav2,
                 my_node,
+                map_process_node,
                 foxglove_bridge
             ])
     else:

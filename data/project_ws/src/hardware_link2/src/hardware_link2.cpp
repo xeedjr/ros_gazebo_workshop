@@ -230,8 +230,20 @@ hardware_interface::return_type HardwareLinkInterface::read(
     return hardware_interface::return_type::ERROR;
   }
 
-  wheels[0].state_pos = w1_pos;
-  wheels[1].state_pos = w2_pos*-1.0;
+  if (wheels[0].is_present_start == true) {
+      wheels[0].state_pos = w1_pos - wheels[0].w1_pos_start;
+  } else {
+    wheels[0].w1_pos_start = w1_pos;
+    wheels[0].is_present_start = true;
+  };
+
+  if (wheels[1].is_present_start == true) {
+      wheels[1].state_pos = w2_pos*-1.0 - wheels[1].w1_pos_start;
+  } else {
+    wheels[1].w1_pos_start = w2_pos*-1.0;
+    wheels[1].is_present_start = true;
+  };
+
 
 //  double wposdelta0 =  wheels[0].state_pos - wheels[0].state_pos_prev;
 //  double wposdelta1 =  wheels[1].state_pos - wheels[1].state_pos_prev;
