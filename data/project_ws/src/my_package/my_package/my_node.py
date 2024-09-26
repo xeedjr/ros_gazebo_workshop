@@ -18,7 +18,12 @@ class MinimalPublisher(Node):
         self.publisher_ = self.create_publisher(String, 'topic', 10)
         timer_period = 0.5  # seconds
         self.i = 0
-        # self.srv = self.create_service(AddTwoInts, 'add_two_ints', self.add_two_ints_callback)
+        
+        self.is_discover_allowed = False
+
+        # ros2 service call /discover_map example_interfaces/AddTwoInts "{a: 1, b: 2}"
+        self.srv = self.create_service(AddTwoInts, 'discover_map', self.discover_map_callback)
+
         self.topic_cmd_vel_nav = self.create_subscription(
             Twist,
             '/cmd_vel_nav',
@@ -64,7 +69,13 @@ class MinimalPublisher(Node):
         # global_costmap = navigator.getGlobalCostmap()
         # local_costmap = navigator.getLocalCostmap()
 
+    def discover_map_callback(self, request, response):
+        response.sum = request.a + request.b
+        self.get_logger().info('Incoming request\na: %d b: %d' % (request.a, request.b))
 
+        self.is_discover_allowed = True
+
+        return response
 
     def callback_cmd_vel(self, cmd_vel_msg):
 #        self.get_logger().info('cmd_vel_received')
@@ -74,6 +85,9 @@ class MinimalPublisher(Node):
 
     def marker_callback(self, msg: MarkerArray):
 
+        if self.is_discover_allowed == False:
+            return
+
         if len(msg.markers) == 0:
             return
 
@@ -82,7 +96,7 @@ class MinimalPublisher(Node):
 
             current_marker = None
             for marker in msg.markers:
-                if marker.id not in [m.id for m in self.prevoius_used_markers.markers]:
+                if marker.pose.position.x not in [m.pose.position.x for m in self.prevoius_used_markers.markers]:
                     current_marker = marker
                     break
 

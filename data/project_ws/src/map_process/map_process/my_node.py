@@ -200,21 +200,33 @@ class MapProcessor(Node):
         # Find contours from the transition map
         contours, _ = cv2.findContours(transition_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        contour_centers = []  # Store the centers of valid contours
+        # contour_centers = []  # Store the centers of valid contours
+        # for contour in contours:
+        #     length = cv2.arcLength(contour, closed=False)
+        #     if length > 20:  # Filter out contours shorter than 4 pixels
+        #         M = cv2.moments(contour)
+        #         if M['m00'] != 0:  # Avoid division by zero
+        #             center_x = int(M['m10'] / M['m00'])
+        #             center_y = int(M['m01'] / M['m00'])
+        #             contour_centers.append((center_x, center_y))
+        contour_midpoints = []  # Store the midpoints of valid contours
+
         for contour in contours:
             length = cv2.arcLength(contour, closed=False)
             if length > 20:  # Filter out contours shorter than 4 pixels
-                M = cv2.moments(contour)
-                if M['m00'] != 0:  # Avoid division by zero
-                    center_x = int(M['m10'] / M['m00'])
-                    center_y = int(M['m01'] / M['m00'])
-                    contour_centers.append((center_x, center_y))
+                # Calculate the contour midpoint
+                contour_points = np.squeeze(contour)  # Remove redundant dimensions from contour array
+                if len(contour_points) > 1:  # Check if contour has more than 1 point
+                    midpoint_x = np.mean(contour_points[:, 0])
+                    midpoint_y = np.mean(contour_points[:, 1])
+                    contour_midpoints.append((midpoint_x, midpoint_y))
 
+        self.publish_contour_markers(contour_midpoints, map_msg.info)
         # Log the detected contour centers
         # self.get_logger().info(f"Detected {len(contour_centers)} contour centers: {contour_centers}")
 
         # Publish the markers
-        self.publish_contour_markers(contour_centers, map_msg.info)
+        # self.publish_contour_markers(contour_centers, map_msg.info)
         
 
 
