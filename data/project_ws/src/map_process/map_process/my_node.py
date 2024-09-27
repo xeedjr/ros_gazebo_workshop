@@ -63,7 +63,7 @@ class MapProcessor(Node):
             base_y = trans.transform.translation.y
             base_z = trans.transform.translation.z
 
-            self.get_logger().info(f"base X: {base_x} Y: {base_y}")
+            # self.get_logger().info(f"base X: {base_x} Y: {base_y}")
 
             # Calculate distance for each marker
             for marker in marker_array.markers:
