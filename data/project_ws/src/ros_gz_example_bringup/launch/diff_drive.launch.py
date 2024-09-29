@@ -176,7 +176,7 @@ def generate_launch_description():
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', nav2_config_file),
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
-                        'slam': 'False',
+                        'slam': 'True',
                         }.items(),
     )
     # joy = Node(
@@ -268,14 +268,14 @@ def generate_launch_description():
         remappings=[('odometry/filtered', 'odometry/global')]  
     )
 
-    slam = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-        launch_arguments={
-            'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
-            'use_sim_time': str(use_sim_time)        
-        }.items(),
-    )
+    # slam = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
+    #     launch_arguments={
+    #         'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
+    #         'use_sim_time': str(use_sim_time)        
+    #     }.items(),
+    # )
 
     bno080_calibration_node = Node(
         package='bno080',
@@ -306,7 +306,7 @@ def generate_launch_description():
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
-                    slam,
+                    # slam,
                     nav2,
                     my_node,
 
@@ -344,7 +344,7 @@ def generate_launch_description():
                 madgwick_filter,
                 robot_localization_odom,
                 robot_localization_map,
-                slam,
+                # slam,
 
                 nav2,
                 my_node,
