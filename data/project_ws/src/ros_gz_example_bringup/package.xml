@@ -36,6 +36,9 @@
   <depend>velocity_controllers</depend>
   <depend>diff_drive_controller</depend>
 
+  <depend>image_transport</depend>
+
+
   <depend>robot_localization</depend>
   <depend>imu_filter_madgwick</depend>
    	

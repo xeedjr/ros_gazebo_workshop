@@ -137,6 +137,13 @@ def generate_launch_description():
             output='both',
             )
             
+        compress_node = Node(
+            package='camera_process2',
+            executable='compress_node',
+            name='compress_node',
+            output='both',
+            )
+
         rplidar = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(get_package_share_directory('rplidar_ros'), 'launch', 'rplidar_a1_launch.py')),
@@ -345,6 +352,8 @@ def generate_launch_description():
                 robot_localization_odom,
                 robot_localization_map,
                 # slam,
+
+                compress_node,
 
                 nav2,
                 my_node,
