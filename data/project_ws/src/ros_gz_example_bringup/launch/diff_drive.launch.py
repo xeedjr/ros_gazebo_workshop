@@ -334,7 +334,7 @@ def generate_launch_description():
 
 
                 rplidar,
-                #usb_camera,
+                usb_camera,
                 bno080_node,
 
                 control_node,
