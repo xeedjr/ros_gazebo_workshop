@@ -49,12 +49,12 @@
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS  
-- ros_topic_name: "/diff_drive/imu"
-  # gz_topic_name: "/imu"
-  # ros_type_name: "sensor_msgs/msg/Imu"
-  # gz_type_name: "gz.msgs.IMU"
-  # direction: GZ_TO_ROS
-- ros_topic_name: "/magnetometer"
+- ros_topic_name: "/bno080/imu"
+  gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+- ros_topic_name: "/bno080/mag"
   gz_topic_name: "/magnetometer"
   ros_type_name: "sensor_msgs/msg/MagneticField"
   gz_type_name: "gz.msgs.Magnetometer"
