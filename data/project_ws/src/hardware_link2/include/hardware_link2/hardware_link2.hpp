@@ -52,6 +52,9 @@ public:
     double state_pos_prev = 0;
     double cmd_vel = 0;
 
+    double w1_pos_start = 0;
+    bool is_present_start = false;
+    
     Wheel() {
     };
 };
@@ -81,7 +84,7 @@ class HardwareLinkInterface : public hardware_interface::SystemInterface
         }
         if (n == 0) {
             // No data available (timeout or end-of-file)
-            std::cerr << "Timeout" << std::endl;
+            std::cerr << "Timeout received size: " << index << std::endl;
             return 0;
         }
         if (buff[index] == '\n') {

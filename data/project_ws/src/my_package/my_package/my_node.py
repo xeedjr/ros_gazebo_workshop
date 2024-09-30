@@ -94,6 +94,8 @@ class MinimalPublisher(Node):
         if self.navigator.isTaskComplete():
             # Process next marker
 
+            self.get_logger().info('Loop to markers !!!!!!!!!!!!!!!!')
+
             current_marker = None
             for marker in msg.markers:
                 if marker.pose.position.x not in [m.pose.position.x for m in self.prevoius_used_markers.markers]:
@@ -101,6 +103,8 @@ class MinimalPublisher(Node):
                     break
 
             if current_marker:
+                self.get_logger().info('Go to to markers !!!!!!!!!!!!!!!!')
+
                 # Create goal pose based on current marker
                 goal_pose = PoseStamped()
                 goal_pose.header.frame_id = 'map'

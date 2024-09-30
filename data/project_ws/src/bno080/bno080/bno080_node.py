@@ -15,8 +15,8 @@ class MinimalPublisher(Node):
         super().__init__('minimal_publisher')
 
         # Create publishers for IMU and Magnetometer data
-        self.imu_publisher_ = self.create_publisher(Imu, 'imu/data', 10)
-        self.mag_publisher_ = self.create_publisher(MagneticField, 'imu/mag', 10)
+        self.imu_publisher_ = self.create_publisher(Imu, 'bno080/imu', 10)
+        self.mag_publisher_ = self.create_publisher(MagneticField, 'bno080/mag', 10)
 
         # Set up the I2C connection to the BNO08X sensor
         i2c = busio.I2C(board.SCL, board.SDA, frequency=800000)
@@ -61,33 +61,33 @@ class MinimalPublisher(Node):
 
         # Publish the IMU message
         self.imu_publisher_.publish(imu_msg)
-        self.get_logger().info(f"Published IMU data: {imu_msg}")
+        # self.get_logger().info(f"Published IMU data: {imu_msg}")
 
         # --- Publish Magnetometer data ---
         mag_msg = MagneticField()
 
         # Add timestamp and frame_id
         mag_msg.header.stamp = self.get_clock().now().to_msg()  # Add current time
-        mag_msg.header.frame_id = "imu_link"  # Set frame ID
+        mag_msg.header.frame_id = "magnetometer_link"  # Set frame ID
 
-        # Get Magnetometer data
+        # Get Magnetometer data (in microteslas)
         mag_x, mag_y, mag_z = self.bno.magnetic
 
-        # Fill the MagneticField message
-        mag_msg.magnetic_field.x = mag_x
-        mag_msg.magnetic_field.y = mag_y
-        mag_msg.magnetic_field.z = mag_z
+        # Convert microteslas to teslas
+        mag_msg.magnetic_field.x = mag_x * 1e-6
+        mag_msg.magnetic_field.y = mag_y * 1e-6
+        mag_msg.magnetic_field.z = mag_z * 1e-6
 
         # Publish the Magnetometer message
         self.mag_publisher_.publish(mag_msg)
-        self.get_logger().info(f"Published Magnetometer data: {mag_msg}")
+        # self.get_logger().info(f"Published Magnetometer data: {mag_msg}")
 
-        calibration_status = self.bno.calibration_status
-        self.get_logger().info(
-            "Magnetometer Calibration quality:" + 
-            str(adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]) + 
-            " ("  + str(calibration_status) + ")"
-        )
+        # calibration_status = self.bno.calibration_status
+        # self.get_logger().info(
+        #     "Magnetometer Calibration quality:" + 
+        #     str(adafruit_bno08x.REPORT_ACCURACY_STATUS[calibration_status]) + 
+        #     " ("  + str(calibration_status) + ")"
+        # )
         
 def main(args=None):
     rclpy.init(args=args)

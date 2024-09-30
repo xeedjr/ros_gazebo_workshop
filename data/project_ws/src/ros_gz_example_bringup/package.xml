@@ -36,9 +36,13 @@
   <depend>velocity_controllers</depend>
   <depend>diff_drive_controller</depend>
 
+  <depend>image_transport</depend>
+
+
   <depend>robot_localization</depend>
   <depend>imu_filter_madgwick</depend>
    	
+  <depend>foxglove_bridge</depend>    
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

@@ -28,8 +28,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration
-
-
+from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
 
 
@@ -102,6 +101,7 @@ def generate_launch_description():
                     '-z', '0.15'],
 
             )
+
     else:
         use_sim_time = False
 
@@ -122,14 +122,27 @@ def generate_launch_description():
         control_node = Node(
             package="controller_manager",
             executable="ros2_control_node",
-            parameters=[robot_controllers,
-                        {'use_sim_time': use_sim_time}],
+            parameters=[robot_controllers],
             output="both",
             remappings=[
                 ("~/robot_description", "/robot_description"),
             ],
             arguments=['--ros-args', '--log-level', 'info']
         )
+
+        bno080_node = Node(
+            package='bno080',
+            executable='bno080_node',
+            name='bno080_node',
+            output='both',
+            )
+            
+        compress_node = Node(
+            package='camera_process2',
+            executable='compress_node',
+            name='compress_node',
+            output='both',
+            )
 
         rplidar = IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -160,7 +173,20 @@ def generate_launch_description():
     )
 
 
-    
+    if (is_sim == True):
+        nav2_config_file = 'nav2_params_sim.yaml'
+    else:
+        nav2_config_file = 'nav2_params_rpi.yaml'
+    nav2 = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
+        launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', nav2_config_file),
+                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
+                        'use_sim_time': str(use_sim_time),
+                        'slam': 'True',
+                        'use_composition': 'False',
+                        }.items(),
+    )
     # joy = Node(
     #     package='joy',
     #     executable='joy_node',
@@ -175,15 +201,7 @@ def generate_launch_description():
     #                         "joy_vel": '/diff_drive_base_controller/cmd_vel_unstamped'}.items(),
     # )
 
-    nav2 = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
-        launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', 'nav2_params.yaml'),
-                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
-                        'use_sim_time': str(use_sim_time),
-                        'slam': 'False',
-                        }.items(),
-    )
+
 
     # joy = Node(
     #     package='teleop_twist_joy',
@@ -219,12 +237,12 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
-    imu_broad_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["imu_sensor_broadcaster"],
-        parameters=[{'use_sim_time': use_sim_time}],
-    )
+    # imu_broad_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     arguments=["imu_sensor_broadcaster"],
+    #     parameters=[{'use_sim_time': use_sim_time}],
+    # )
 
 
     madgwick_filter = Node(
@@ -234,8 +252,8 @@ def generate_launch_description():
         output='both',
         parameters=[os.path.join(pkg_project_bringup, 'config', 'imu_filter.yaml'),
                     {'use_sim_time': use_sim_time}],
-        remappings=[('/imu/data_raw', '/imu_sensor_broadcaster/imu'),
-                    ('/imu/mag', '/magnetometer')]
+        remappings=[('/imu/data_raw', '/bno080/imu'),
+                    ('/imu/mag', '/bno080/mag')]
     )
 
     robot_localization_odom = Node(
@@ -258,14 +276,14 @@ def generate_launch_description():
         remappings=[('odometry/filtered', 'odometry/global')]  
     )
 
-    slam = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
-        launch_arguments={
-            'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
-            'use_sim_time': str(use_sim_time)        
-        }.items(),
-    )
+    # slam = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('slam_toolbox'), 'launch', 'online_async_launch.py')),
+    #     launch_arguments={
+    #         'slam_params_file': os.path.join(pkg_project_bringup, 'config', 'mapper_params_online_async.yaml'),
+    #         'use_sim_time': str(use_sim_time)        
+    #     }.items(),
+    # )
 
     bno080_calibration_node = Node(
         package='bno080',
@@ -274,11 +292,12 @@ def generate_launch_description():
         output='both',
         )
 
-    bno080_node = Node(
-        package='bno080',
-        executable='bno080_node',
-        name='bno080_node',
-        output='both',
+    foxglove_bridge = IncludeLaunchDescription(
+            AnyLaunchDescriptionSource(os.path.join(
+                                            get_package_share_directory('foxglove_bridge'),
+                                            'launch',
+                                            'foxglove_bridge_launch.xml'
+                                        ))
         )
 
     if (is_debugger == False):
@@ -287,18 +306,19 @@ def generate_launch_description():
             delayed_actions = TimerAction(
                 period=30.0,
                 actions=[
-
-
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    imu_broad_spawner,
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
-                    slam,
                     nav2,
+
+                    # custom node
                     my_node,
                     map_process_node,
+
+                    # debuging tools
+                    foxglove_bridge,
                     rviz
                 ]
             )
@@ -319,27 +339,31 @@ def generate_launch_description():
                                     description='Open RViz.'),
                 robot_state_publisher,
 
-
+                # hw depend
                 rplidar,
-
-                #usb_camera,
+                usb_camera,
                 bno080_node,
+                compress_node,
 
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
-                imu_broad_spawner,
                 madgwick_filter,
                 robot_localization_odom,
                 robot_localization_map,
-                slam,
-
                 nav2,
-                my_node
+
+                # custom node
+                my_node,
+                map_process_node,
+
+                # debuging tools
+                foxglove_bridge
             ])
     else:
         return LaunchDescription([
                 DeclareLaunchArgument('rviz', default_value='true',
                                     description='Open RViz.'),
+                # debuging tools
                 rviz
             ])
