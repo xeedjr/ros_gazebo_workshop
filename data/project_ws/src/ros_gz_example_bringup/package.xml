@@ -44,6 +44,9 @@
    	
   <depend>foxglove_bridge</depend>    
 
+  <depend>aruco_ros</depend>    
+
+
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <test_depend>ament_lint_auto</test_depend>

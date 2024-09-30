@@ -300,6 +300,16 @@ def generate_launch_description():
                                         ))
         )
 
+    aruco_node = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(get_package_share_directory('aruco_ros'), 'launch', 'single.launch.py')),
+            launch_arguments={'markerId': '26',
+                                'markerSize': '0.08',
+                                'eye': 'right',
+                                'ref_frame': '/base_link',
+                          }.items(),
+        )
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -312,6 +322,7 @@ def generate_launch_description():
                     robot_localization_odom,
                     robot_localization_map,
                     nav2,
+                    aruco_node,
 
                     # custom node
                     my_node,
