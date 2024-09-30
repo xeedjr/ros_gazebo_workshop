@@ -82,13 +82,22 @@
     </model> -->
 
 
-    <model name="turtlebot3_world">
+    <model name="Depot">
       <include>
         <uri>
           https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
         </uri>
       </include>
     </model>
+    <model name="DepotSurvival">
+      <pose>-10 -3.8 0.01 0 0 0</pose>
+      <include>
+      <uri>
+      https://fuel.gazebosim.org/1.0/OpenRobotics/models/Rescue Randy Sitting
+      </uri>
+      </include>
+    </model>
+
 
     <!-- <include>
     <pose>7.4 2.0 -2.81 0 0 0</pose>

@@ -184,6 +184,7 @@ def generate_launch_description():
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
                         'slam': 'True',
+                        'use_composition': 'False',
                         }.items(),
     )
     # joy = Node(
@@ -305,20 +306,19 @@ def generate_launch_description():
             delayed_actions = TimerAction(
                 period=30.0,
                 actions=[
-
-
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    # imu_broad_spawner,
                     madgwick_filter,
                     robot_localization_odom,
                     robot_localization_map,
-                    # slam,
                     nav2,
-                    my_node,
 
-                    foxglove_bridge,
+                    # custom node
+                    my_node,
                     map_process_node,
+
+                    # debuging tools
+                    foxglove_bridge,
                     rviz
                 ]
             )
@@ -339,30 +339,31 @@ def generate_launch_description():
                                     description='Open RViz.'),
                 robot_state_publisher,
 
-
+                # hw depend
                 rplidar,
                 usb_camera,
                 bno080_node,
+                compress_node,
 
                 control_node,
                 diff_drive_spawner,
                 joint_broad_spawner,
-                # imu_broad_spawner,
                 madgwick_filter,
                 robot_localization_odom,
                 robot_localization_map,
-                # slam,
-
-                compress_node,
-
                 nav2,
+
+                # custom node
                 my_node,
                 map_process_node,
+
+                # debuging tools
                 foxglove_bridge
             ])
     else:
         return LaunchDescription([
                 DeclareLaunchArgument('rviz', default_value='true',
                                     description='Open RViz.'),
+                # debuging tools
                 rviz
             ])
