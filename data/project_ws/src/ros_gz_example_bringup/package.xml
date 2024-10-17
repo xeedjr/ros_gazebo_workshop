@@ -29,7 +29,7 @@
   <depend>ros_gz_example_gazebo</depend>
 
   <depend>hardware_interface</depend>
-  <depend>ign_ros2_control</depend>
+  <!-- <depend>gz_ros2_control</depend> -->
   
   <depend>imu_sensor_broadcaster</depend>
   <depend>joint_state_broadcaster</depend>
