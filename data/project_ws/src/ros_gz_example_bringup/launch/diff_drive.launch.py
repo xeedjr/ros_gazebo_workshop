@@ -330,7 +330,7 @@ def generate_launch_description():
                 bridge,
                 ignition_spawn_entity,
                 robot_state_publisher,
-
+                
                 delayed_actions
             ])
         else:
