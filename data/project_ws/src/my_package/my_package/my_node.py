@@ -92,7 +92,7 @@ class MinimalPublisher(Node):
 
         # Publish the message
         self.cmd_vel_pub.publish(cmd_vel_msg)
-        self.get_logger().info(f'Publishing TwistStamped: {cmd_vel_msg}')
+        # self.get_logger().info(f'Publishing TwistStamped: {cmd_vel_msg}')
 
 
     def marker_callback(self, msg: MarkerArray):
