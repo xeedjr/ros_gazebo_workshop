@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, TwistStamped
 from geometry_msgs.msg import PoseStamped
 from nav2_simple_commander.robot_navigator import BasicNavigator, TaskResult
 import rclpy
@@ -29,7 +29,7 @@ class MinimalPublisher(Node):
             '/cmd_vel_nav',
             self.callback_cmd_vel,
             0)
-        self.cmd_vel_pub = self.create_publisher(Twist, '/diff_drive_base_controller/cmd_vel_unstamped', 0)
+        self.cmd_vel_pub = self.create_publisher(TwistStamped, '/diff_drive_base_controller/cmd_vel', 0)
         # Subscription to the marker array topic
         self.marker_sub = self.create_subscription(
             MarkerArray,
@@ -77,10 +77,22 @@ class MinimalPublisher(Node):
 
         return response
 
-    def callback_cmd_vel(self, cmd_vel_msg):
+    def callback_cmd_vel(self, cmd_vel_msg_in):
 #        self.get_logger().info('cmd_vel_received')
 
+        cmd_vel_msg = TwistStamped()
+        
+        # Add current time and frame_id to the header
+        cmd_vel_msg.header.stamp = self.get_clock().now().to_msg()
+        cmd_vel_msg.header.frame_id = 'base_link'  # Adjust frame ID as needed
+
+        # Set linear and angular velocities
+        cmd_vel_msg.twist.linear = cmd_vel_msg_in.linear
+        cmd_vel_msg.twist.angular = cmd_vel_msg_in.angular
+
+        # Publish the message
         self.cmd_vel_pub.publish(cmd_vel_msg)
+        self.get_logger().info(f'Publishing TwistStamped: {cmd_vel_msg}')
 
 
     def marker_callback(self, msg: MarkerArray):

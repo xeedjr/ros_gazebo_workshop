@@ -55,7 +55,7 @@
       <direction>-0.5 0.1 -0.9</direction>
     </light>
 
-    <model name="ground_plane">
+    <!-- <model name="ground_plane">
       <static>true</static>
       <link name="link">
         <collision name="collision">
@@ -80,16 +80,16 @@
           </material>
         </visual>
       </link>
-    </model>
+    </model> -->
 
-<!-- 
+
     <model name="Depot">
       <include>
         <uri>
           https://fuel.gazebosim.org/1.0/OpenRobotics/models/Depot
         </uri>
       </include>
-    </model> -->
+    </model>
     <!-- <model name="DepotSurvival">
       <pose>-10 -3.8 0.01 0 0 0</pose>
       <include>
