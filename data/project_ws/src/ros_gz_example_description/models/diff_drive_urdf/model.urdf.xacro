@@ -263,9 +263,9 @@
             <lens>
               <type>custom</type>
               <custom_function>
-                <c1>1.05</c1>
-                <c2>4</c2>
-                <f>1.0</f>
+                <c1>1</c1>
+                <c2>2</c2>
+                <f>3.2</f>
                 <fun>tan</fun>
               </custom_function>
               <scale_to_hfov>true</scale_to_hfov>
