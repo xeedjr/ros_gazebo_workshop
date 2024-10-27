@@ -300,6 +300,16 @@ def generate_launch_description():
                                         ))
         )
 
+
+    camera_udp_publisher_node = Node(
+        package='camera_udp_publisher',
+        executable='my_node',
+        name='camera_udp_publisher',
+        output='both',
+        )
+
+
+
     if (is_debugger == False):
         if (is_sim == True):
             # Delay of 3 seconds after gz_sim
@@ -316,6 +326,7 @@ def generate_launch_description():
                     # custom node
                     my_node,
                     map_process_node,
+                    camera_udp_publisher_node,
 
                     # debuging tools
                     foxglove_bridge,
@@ -330,7 +341,7 @@ def generate_launch_description():
                 bridge,
                 ignition_spawn_entity,
                 robot_state_publisher,
-
+                
                 delayed_actions
             ])
         else:

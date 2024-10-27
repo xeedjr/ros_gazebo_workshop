@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 
 colcon build --cmake-args -DBUILD_TESTING=ON
 

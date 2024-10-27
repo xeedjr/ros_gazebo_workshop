@@ -6,7 +6,7 @@
   <ros2_control name="IgnitionSystem" type="system">
     <xacro:if value="${is_sim==True}">
       <hardware>
-        <plugin>ign_ros2_control/IgnitionSystem</plugin>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
       </hardware>
     </xacro:if>        
     <xacro:if value="${is_sim==False}">
@@ -40,15 +40,15 @@
 
 
   <gazebo>
-    <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
       <parameters>/root/data/project_ws/src/ros_gz_example_bringup/config/diff_drive_controller_velocity.yaml</parameters>
     </plugin>
     <plugin
-      filename="ignition-gazebo-imu-system"
+      filename="gz-sim-imu-system"
       name="gz::sim::systems::Imu">
     </plugin>
     <plugin
-      filename="ignition-gazebo-magnetometer-system"
+      filename="gz-sim-magnetometer-system"
       name="gz::sim::systems::Magnetometer">
     </plugin>
   </gazebo>
@@ -129,6 +129,7 @@
     <child link="left_wheel"/>
     <axis xyz="0 0 1"/>
     <origin rpy="-1.5707 0 0" xyz="0.05 0.11 -0.05"/>
+    <dynamics damping="0.2"/>
   </joint>
 
   <link name="right_wheel">
@@ -173,6 +174,7 @@
     <child link="right_wheel"/>
     <axis xyz="0 0 1"/>
     <origin rpy="-1.5707 0 0" xyz="0.05 -0.11 -0.05"/>
+    <dynamics damping="0.2"/>
   </joint>
 
   <link name="caster">
@@ -245,8 +247,7 @@
     </collision>     
   </link>
 
-
-  <gazebo reference="camera_link">
+  <!-- <gazebo reference="camera_link">
         <sensor name="camera" type="camera">
           <camera>
             <horizontal_fov>2</horizontal_fov>
@@ -260,8 +261,40 @@
             </clip>
           </camera>
           <always_on>1</always_on>
-          <update_rate>10</update_rate>
-          <visualize>true</visualize>
+          <update_rate>60</update_rate>
+          <visualize>1</visualize>
+          <topic>camera</topic>
+        </sensor>
+  </gazebo> -->
+
+  <gazebo reference="camera_link">
+        <sensor name="wide_angle_camera" type="wideanglecamera">
+          <camera>
+            <horizontal_fov>2</horizontal_fov>
+            <image>
+              <width>1280</width>
+              <height>720</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <lens>
+              <type>custom</type>
+              <custom_function>
+                <c1>1</c1>
+                <c2>2</c2>
+                <f>3.2</f>
+                <fun>tan</fun>
+              </custom_function>
+              <scale_to_hfov>true</scale_to_hfov>
+              <cutoff_angle>2</cutoff_angle>
+              <env_texture_size>512</env_texture_size>
+            </lens>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>60</update_rate>
+          <visualize>1</visualize>
           <topic>camera</topic>
         </sensor>
   </gazebo>
@@ -294,7 +327,7 @@
         <sensor name='gpu_lidar' type='gpu_lidar'>
           <pose>0 0 0 0 0 0</pose>
           <topic>scan</topic>
-          <ignition_frame_id>lidar_link</ignition_frame_id>
+          <gz_frame_id>lidar_link</gz_frame_id>
           <update_rate>10</update_rate>
           <lidar>
             <scan>
@@ -356,68 +389,7 @@
       <visualize>true</visualize>
       <topic>imu</topic>
       <enable_metrics>true</enable_metrics>
-      <ignition_frame_id>imu_link</ignition_frame_id>
-      
-      <imu>
-        <angular_velocity>
-          <x>
-            <bias>
-              <mean>0.01</mean> 
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.05</stddev> 
-            </noise>
-          </x>
-          <y>
-            <bias>
-              <mean>0.02</mean> 
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.05</stddev> 
-            </noise>
-          </y>
-          <z>
-            <bias>
-              <mean>0.015</mean> 
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.05</stddev>
-            </noise>
-          </z>
-        </angular_velocity>
-        <linear_acceleration>
-          <x>
-            <bias>
-              <mean>0.05</mean> 
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.3</stddev> 
-            </noise>
-          </x>
-          <y>
-            <bias>
-              <mean>0.03</mean>
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.3</stddev>
-            </noise>
-          </y>
-          <z>
-            <bias>
-              <mean>0.04</mean>
-            </bias>
-            <noise type="gaussian">
-              <mean>0.0</mean>
-              <stddev>0.3</stddev> 
-            </noise>
-          </z>
-        </linear_acceleration>
-      </imu>
+      <gz_frame_id>imu_link</gz_frame_id>
     </sensor>
   </gazebo>
 
@@ -451,7 +423,7 @@
       <update_rate>100</update_rate>
       <visualize>true</visualize>
       <topic>magnetometer</topic>
-      <ignition_frame_id>magnetometer_link</ignition_frame_id>
+      <gz_frame_id>magnetometer_link</gz_frame_id>
       <enable_metrics>true</enable_metrics>
       <!-- <magnetometer>
         <x>
@@ -482,5 +454,5 @@
     <child link="magnetometer_link"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>    
   </joint>
-
+  
 </robot>
