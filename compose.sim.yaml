@@ -18,6 +18,7 @@ services:
     network_mode: host  
     ipc: "host"
     pid: "host"
+    #cpuset: "1-5"
     environment:
       - IS_SIM=True
       - DISPLAY
