@@ -146,5 +146,292 @@
       </plugin>
     </model> -->
 
+
+
+
+
+
+    <model name="cube_grid">
+      <pose>0 0 0.2 -1.51 0 -1.51</pose>
+      <static>true</static>
+
+      <link name="link">
+        <visual name="backgroundf">
+          <pose>0.00 0.00 0.001 0 0 0</pose>
+          <geometry><box><size>0.5 0.5 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+
+        <!-- Row 0 -->
+        <visual name="visual_cube_0_0">
+          <pose>0.00 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_1">
+          <pose>0.03 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_2">
+          <pose>0.06 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_3">
+          <pose>0.09 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_4">
+          <pose>0.12 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_5">
+          <pose>0.15 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_6">
+          <pose>0.18 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_0_7">
+          <pose>0.21 0.00 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+
+        <!-- Row 1 -->
+        <visual name="visual_cube_1_0">
+          <pose>0.00 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_1">
+          <pose>0.03 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_2">
+          <pose>0.06 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_3">
+          <pose>0.09 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_4">
+          <pose>0.12 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_5">
+          <pose>0.15 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_6">
+          <pose>0.18 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_1_7">
+          <pose>0.21 0.03 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+
+        <!-- Row 2 -->
+        <visual name="visual_cube_2_0">
+          <pose>0.00 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_1">
+          <pose>0.03 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_2">
+          <pose>0.06 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_3">
+          <pose>0.09 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_4">
+          <pose>0.12 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_5">
+          <pose>0.15 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_6">
+          <pose>0.18 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_2_7">
+          <pose>0.21 0.06 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+
+        <!-- Row 3 -->
+        <visual name="visual_cube_3_0">
+          <pose>0.00 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_1">
+          <pose>0.03 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_2">
+          <pose>0.06 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_3">
+          <pose>0.09 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_4">
+          <pose>0.12 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_5">
+          <pose>0.15 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_6">
+          <pose>0.18 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_3_7">
+          <pose>0.21 0.09 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+
+        <!-- Row 4 -->
+        <visual name="visual_cube_4_0">
+          <pose>0.00 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_1">
+          <pose>0.03 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_2">
+          <pose>0.06 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_3">
+          <pose>0.09 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_4">
+          <pose>0.12 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_5">
+          <pose>0.15 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_6">
+          <pose>0.18 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_4_7">
+          <pose>0.21 0.12 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+
+        <!-- Row 5 -->
+        <visual name="visual_cube_5_0">
+          <pose>0.00 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_1">
+          <pose>0.03 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_2">
+          <pose>0.06 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_3">
+          <pose>0.09 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_4">
+          <pose>0.12 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_5">
+          <pose>0.15 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_6">
+          <pose>0.18 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>0 0 0 1</ambient><diffuse>0 0 0 1</diffuse></material>
+        </visual>
+        <visual name="visual_cube_5_7">
+          <pose>0.21 0.15 0 0 0 0</pose>
+          <geometry><box><size>0.03 0.03 0.03</size></box></geometry>
+          <material><ambient>1 1 1 1</ambient><diffuse>1 1 1 1</diffuse></material>
+        </visual>
+
+        <!-- Row 2 -->
+        <!-- Cube definitions for Row 2 (same pattern as previous rows, alternating colors) -->
+
+        <!-- Row 3 -->
+        <!-- Cube definitions for Row 3 (same pattern as previous rows, alternating colors) -->
+
+        <!-- Row 4 -->
+        <!-- Cube definitions for Row 4 (same pattern as previous rows, alternating colors) -->
+
+        <!-- Row 5 -->
+        <!-- Cube definitions for Row 5 (same pattern as previous rows, alternating colors) -->
+
+      </link>
+    </model>
+
+
+
+
+
   </world>
 </sdf>
