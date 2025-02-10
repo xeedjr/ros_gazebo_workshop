@@ -222,15 +222,15 @@
 
 
 
-  <link name="camera_link">
-    <origin rpy="0 0 0" xyz="0.10 0 0.05"/>
+  <link name="camera_left_link">
+    <origin rpy="0 0 0" xyz="0.10 0.03 0.05"/>
     <inertial>
       <mass value="0.1"/>
       <inertia ixx="0.000166667" iyy="0.000166667" izz="0.000166667" ixy="0" ixz="0" iyz="0"/>
     </inertial>
     <visual>
       <geometry>
-        <box size="0.05 0.05 0.05"/>
+        <box size="0.02 0.02 0.02"/>
       </geometry>
       <gazebo>
         <material>
@@ -242,33 +242,13 @@
     </visual>
     <collision name="collision">
       <geometry>
-        <box size="0.05 0.05 0.05"/>
+        <box size="0.02 0.02 0.02"/>
       </geometry>
     </collision>     
   </link>
 
-  <!-- <gazebo reference="camera_link">
-        <sensor name="camera" type="camera">
-          <camera>
-            <horizontal_fov>2</horizontal_fov>
-            <image>
-              <width>1280</width>
-              <height>720</height>
-            </image>
-            <clip>
-              <near>0.1</near>
-              <far>100</far>
-            </clip>
-          </camera>
-          <always_on>1</always_on>
-          <update_rate>60</update_rate>
-          <visualize>1</visualize>
-          <topic>camera</topic>
-        </sensor>
-  </gazebo> -->
-
-  <gazebo reference="camera_link">
-        <sensor name="wide_angle_camera" type="wideanglecamera">
+  <gazebo reference="camera_left_link">
+        <sensor name="wide_angle_camera_left" type="wideanglecamera">
           <camera>
             <horizontal_fov>3.14</horizontal_fov>
             <image>
@@ -295,14 +275,78 @@
           <always_on>1</always_on>
           <update_rate>10</update_rate>
           <visualize>1</visualize>
-          <topic>camera</topic>
+          <topic>camera_left</topic>
         </sensor>
   </gazebo>
 
-  <joint name="camera_joint" type="fixed">
+  <joint name="camera_left_joint" type="fixed">
     <parent link="base_link"/>
-    <child link="camera_link"/>
-    <origin rpy="0 0 0" xyz="0.10 0 0.05"/>    
+    <child link="camera_left_link"/>
+    <origin rpy="0 0 0" xyz="0.10 0.03 0.05"/>    
+  </joint>
+
+
+  <link name="camera_right_link">
+    <origin rpy="0 0 0" xyz="0.10 -0.03 0.05"/>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.000166667" iyy="0.000166667" izz="0.000166667" ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.02 0.02 0.02"/>
+      </geometry>
+      <gazebo>
+        <material>
+          <ambient>0 0 0 1</ambient>
+          <diffuse>0 0 0 1</diffuse>
+          <specular>0 0 0 1</specular>
+        </material>
+      </gazebo>
+    </visual>
+    <collision name="collision">
+      <geometry>
+        <box size="0.02 0.02 0.02"/>
+      </geometry>
+    </collision>     
+  </link>
+
+  <gazebo reference="camera_right_link">
+        <sensor name="wide_angle_camera_right" type="wideanglecamera">
+          <camera>
+            <horizontal_fov>3.14</horizontal_fov>
+            <image>
+              <width>1280</width>
+              <height>720</height>
+            </image>
+            <clip>
+              <near>0.1</near>
+              <far>100</far>
+            </clip>
+            <lens>
+              <type>custom</type>
+              <custom_function>
+                <c1>1.05</c1>
+                <c2>4</c2>
+                <f>1.0</f>
+                <fun>tan</fun>
+              </custom_function>
+              <scale_to_hfov>true</scale_to_hfov>
+              <cutoff_angle>3.1415</cutoff_angle>
+              <env_texture_size>1024</env_texture_size>
+            </lens>
+          </camera>
+          <always_on>1</always_on>
+          <update_rate>10</update_rate>
+          <visualize>1</visualize>
+          <topic>camera_right</topic>
+        </sensor>
+  </gazebo>
+
+  <joint name="camera_right_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="camera_right_link"/>
+    <origin rpy="0 0 0" xyz="0.10 -0.03 0.05"/>    
   </joint>
 
   <link name="lidar_link">
