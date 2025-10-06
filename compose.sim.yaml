@@ -7,17 +7,17 @@ services:
     runtime: nvidia
     deploy:
       resources:
-        limits:
-          memory: 4g
+        # limits:
+        #   memory: 4g
         reservations:
           devices:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    entrypoint: "terminator"
+    entrypoint: "sleep 99999d"
     network_mode: host  
-    ipc: "host"
-    pid: "host"
+    # ipc: "host"
+    # pid: "host"
     #cpuset: "1-5"
     environment:
       - IS_SIM=True
@@ -25,3 +25,4 @@ services:
     volumes:
       - ./data:/root/data
       - /dev/input:/dev/input
+      - /dev:/dev

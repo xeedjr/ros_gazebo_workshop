@@ -30,7 +30,8 @@ from launch_ros.actions import Node
 from launch.substitutions import Command, LaunchConfiguration
 from launch.launch_description_sources import AnyLaunchDescriptionSource
 from launch_ros.actions import Node
-
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction
+from launch_ros.actions import Node, SetParameter, SetRemap
 
 def generate_launch_description():
     # Configure ROS nodes for launch
@@ -45,6 +46,7 @@ def generate_launch_description():
     else:
         is_sim = False
 
+    is_sim = False
 
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
@@ -88,6 +90,16 @@ def generate_launch_description():
             ],
             output='screen'
         )
+
+        # image_bridge = Node(
+        #     package='ros_gz_image',
+        #     executable='image_bridge',
+        #     arguments=[
+        #         '/camera_left',
+        #         '/camera_right'
+        #     ],
+        #     output='screen'
+        # )
 
         ignition_spawn_entity = Node(
             package='ros_gz_sim',
@@ -183,7 +195,7 @@ def generate_launch_description():
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', nav2_config_file),
                         "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
                         'use_sim_time': str(use_sim_time),
-                        'slam': 'True',
+                        'slam': 'False',
                         'use_composition': 'False',
                         }.items(),
     )
@@ -297,16 +309,139 @@ def generate_launch_description():
                                             get_package_share_directory('foxglove_bridge'),
                                             'launch',
                                             'foxglove_bridge_launch.xml'
-                                        ))
+                                        )),
+                                        launch_arguments={
+                                            'port': '8769'  # replace 8766 with your desired port
+                                        }.items()
         )
 
 
-    camera_udp_publisher_node = Node(
-        package='camera_udp_publisher',
-        executable='my_node',
-        name='camera_udp_publisher',
+    # # Launch image_proc node for image processing
+    # image_proc_node = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('image_proc'), 'launch', 'image_proc.launch.py')
+    #     )
+    # )
+
+    stereo_camera_node = Node(
+        package='stereo_camera_package',
+        executable='stereo_camera_node',
         output='both',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+
+    stereo_image_proc_node =   GroupAction(
+            actions=[
+
+                # SetRemap(src='/camera_info',dst='/left/camera_info'),
+                # SetRemap(src='/camera_info',dst='/right/camera_info'),
+                # SetRemap(src='/camera_left',dst='/left/image_raw'),
+                # SetRemap(src='/camera_right',dst='/right/image_raw'),
+
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource([PathJoinSubstitution([get_package_share_directory('stereo_image_proc'), 'launch', 'stereo_image_proc.launch.py'])]),
+                    launch_arguments=[
+                        ('left_namespace', 'stereo_camera/left'),
+                        ('right_namespace', 'stereo_camera/right'),
+                        ('namespace', 'stereo'),
+                        ('approximate_sync', 'False'),
+                        ('log-level', 'DEBUG'),
+                    ]
+                ),
+            ]
         )
+
+    image_proc_rect_left_node = Node(
+        package='image_proc',
+        executable='rectify_node',
+        name='rectify_node_rect',
+        namespace='stereo/stereo_camera/left',
+        output='screen',
+        remappings=[
+            ('image', '/stereo/stereo_camera/left/image_raw'),
+            ('camera_info', '/stereo/stereo_camera/left/camera_info'),
+            ('image_rect', '/stereo/stereo_camera/left/image_rect')
+        ]
+    )
+
+    image_proc_rect_right_node = Node(
+        package='image_proc',
+        executable='rectify_node',
+        name='rectify_node_rect',
+        namespace='stereo/stereo_camera/right',
+        output='screen',
+        remappings=[
+            ('image', '/stereo/stereo_camera/right/image_raw'),
+            ('camera_info', '/stereo/stereo_camera/right/camera_info'),
+            ('image_rect', '/stereo/stereo_camera/right/image_rect')
+        ]
+    )
+
+    stereo_image_proc2 = Node(   
+        package='stereo_image_proc',
+        executable='disparity_node',
+        name='disparity_node',
+        namespace='stereo',
+        remappings=[
+            ('left/image_rect', '/stereo/stereo_camera/left/image_rect'),
+            ('left/camera_info', '/stereo/stereo_camera/left/camera_info'),
+            ('right/image_rect', '/stereo/stereo_camera/right/image_rect'),
+            ('right/camera_info', '/stereo/stereo_camera/right/camera_info')
+        ],
+        parameters=[
+            {'queue_size': 5},
+            {'approximate_sync': False},
+            {'use_system_default_qos': True}
+        ]
+    )
+
+
+    ## ros2 run rtabmap_odom stereo_odometry --params
+
+    parameters_odom=[{
+          'frame_id':'base_link',
+          'subscribe_stereo':True,
+          'subscribe_odom_info':True,
+          'wait_imu_to_init':False,
+          'use_sim_time':use_sim_time,
+          'always_check_imu_tf': False,
+          'Rtabmap/ImagesAlreadyRectified':"true", 
+          #'Vis/FeatureType': "8",
+          'publish_tf':True}]
+
+    parameters_slam=[{
+          'frame_id':'base_link',
+          'subscribe_stereo':True,
+          'subscribe_odom_info':True,
+          'wait_imu_to_init':False,
+          'use_sim_time':use_sim_time,
+          'always_check_imu_tf': False,
+          'publish_tf':True}]
+
+    remappings=[
+          ('left/image_rect', '/stereo/stereo_camera/left/image_rect'),
+          ('left/camera_info', '/stereo/stereo_camera/left/camera_info'),
+          ('right/image_rect', '/stereo/stereo_camera/right/image_rect'),
+          ('right/camera_info', '/stereo/stereo_camera/right/camera_info')]
+
+    # Visual odometry
+    rtabmap_odom_node =   Node(
+            package='rtabmap_odom', executable='stereo_odometry', output='screen',
+            parameters=parameters_odom,
+            remappings=remappings)
+
+    rtabmap_slam_node = Node(
+            package='rtabmap_slam', executable='rtabmap', output='screen',
+            parameters=parameters_slam,
+            remappings=remappings,
+            arguments=['-d'])
+
+    rtabmap_viz_node = Node(
+            package='rtabmap_viz', executable='rtabmap_viz', output='screen',
+            parameters=parameters_slam,
+            remappings=remappings)
+
 
 
 
@@ -319,18 +454,24 @@ def generate_launch_description():
                     diff_drive_spawner,
                     joint_broad_spawner,
                     madgwick_filter,
-                    robot_localization_odom,
-                    robot_localization_map,
-                    nav2,
+                    # robot_localization_odom,
+                    # robot_localization_map,
+                    # nav2,
 
                     # custom node
-                    my_node,
-                    map_process_node,
-                    camera_udp_publisher_node,
+                    # my_node,
+                    # map_process_node,
 
                     # debuging tools
-                    foxglove_bridge,
-                    rviz
+                
+                    
+                    stereo_image_proc_node,
+                    rtabmap_odom_node,
+                    # rtabmap_slam_node,
+                    rtabmap_viz_node,
+
+                    rviz,
+                    # foxglove_bridge
                 ]
             )
 
@@ -339,37 +480,37 @@ def generate_launch_description():
                                     description='Open RViz.'),
                 gz_sim,
                 bridge,
+                # # image_bridge,
                 ignition_spawn_entity,
                 robot_state_publisher,
-                
+
                 delayed_actions
+                # image_proc_node
             ])
         else:
+            delayed_actions = TimerAction(
+                period=5.0,
+                actions=[
+                    image_proc_rect_left_node,
+                    image_proc_rect_right_node,
+                    stereo_image_proc2,
+                ]
+            )
+
             return LaunchDescription([
                 DeclareLaunchArgument('rviz', default_value='true',
                                     description='Open RViz.'),
                 robot_state_publisher,
 
-                # hw depend
-                rplidar,
-                usb_camera,
-                bno080_node,
-                compress_node,
+                stereo_camera_node,
+                
+                delayed_actions,
 
-                control_node,
-                diff_drive_spawner,
-                joint_broad_spawner,
-                madgwick_filter,
-                robot_localization_odom,
-                robot_localization_map,
-                nav2,
+                rtabmap_odom_node,
+                rtabmap_slam_node,
+                rtabmap_viz_node,
 
-                # custom node
-                my_node,
-                map_process_node,
-
-                # debuging tools
-                foxglove_bridge
+                rviz,
             ])
     else:
         return LaunchDescription([

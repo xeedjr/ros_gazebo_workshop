@@ -51,7 +51,7 @@ RUN apt update && apt install -y \
     terminator
 
 RUN apt install -y glmark2 mc
-RUN apt install -y ros-jazzy-slam-toolbox ros-jazzy-rplidar-ros ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-v4l2-camera ros-jazzy-hardware-interface ros-jazzy-gz-ros2-control ros-jazzy-joint-state-broadcaster ros-jazzy-velocity-controllers ros-jazzy-diff-drive-controller ros-jazzy-foxglove-bridge
+RUN apt install -y ros-jazzy-slam-toolbox ros-jazzy-rplidar-ros ros-jazzy-navigation2 ros-jazzy-nav2-bringup ros-jazzy-v4l2-camera ros-jazzy-hardware-interface ros-jazzy-gz-ros2-control ros-jazzy-joint-state-broadcaster ros-jazzy-velocity-controllers ros-jazzy-diff-drive-controller ros-jazzy-foxglove-bridge ros-jazzy-stereo-image-proc
 
 
 # Install ROS dependencies (ideally after ROS installation)

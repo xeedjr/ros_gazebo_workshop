@@ -30,44 +30,46 @@ class MinimalPublisher(Node):
             self.callback_cmd_vel,
             0)
         self.cmd_vel_pub = self.create_publisher(TwistStamped, '/diff_drive_base_controller/cmd_vel', 0)
-        # Subscription to the marker array topic
-        self.marker_sub = self.create_subscription(
-            MarkerArray,
-            '/contour_markers_sorted',  # Replace with your actual topic
-            self.marker_callback,
-            10
-        )
 
-        self.prevoius_used_markers = MarkerArray()
 
-        self.navigator = BasicNavigator()
+        # # Subscription to the marker array topic
+        # self.marker_sub = self.create_subscription(
+        #     MarkerArray,
+        #     '/contour_markers_sorted',  # Replace with your actual topic
+        #     self.marker_callback,
+        #     10
+        # )
 
-        #Set our demo's initial pose
-        initial_pose = PoseStamped()
-        initial_pose.header.frame_id = 'map'
-        initial_pose.header.stamp = self.navigator.get_clock().now().to_msg()
-        initial_pose.pose.position.x = 3.45
-        initial_pose.pose.position.y = 2.15
-        initial_pose.pose.orientation.z = 1.0
-        initial_pose.pose.orientation.w = 0.0
-        self.navigator.setInitialPose(initial_pose)
+        # self.prevoius_used_markers = MarkerArray()
 
-        # Activate navigation, if not autostarted. This should be called after setInitialPose()
-        # or this will initialize at the origin of the map and update the costmap with bogus readings.
-        # If autostart, you should `waitUntilNav2Active()` instead.
-        # navigator.lifecycleStartup()
+        # self.navigator = BasicNavigator()
 
-        # Wait for navigation to fully activate, since autostarting nav2
-        #navigator.waitUntilNav2Active()
-        self.navigator.waitUntilNav2Active(localizer="bt_navigator")
+        # #Set our demo's initial pose
+        # initial_pose = PoseStamped()
+        # initial_pose.header.frame_id = 'map'
+        # initial_pose.header.stamp = self.navigator.get_clock().now().to_msg()
+        # initial_pose.pose.position.x = 3.45
+        # initial_pose.pose.position.y = 2.15
+        # initial_pose.pose.orientation.z = 1.0
+        # initial_pose.pose.orientation.w = 0.0
+        # self.navigator.setInitialPose(initial_pose)
 
-        # If desired, you can change or load the map as well
-        # navigator.changeMap('/path/to/map.yaml')
+        # # Activate navigation, if not autostarted. This should be called after setInitialPose()
+        # # or this will initialize at the origin of the map and update the costmap with bogus readings.
+        # # If autostart, you should `waitUntilNav2Active()` instead.
+        # # navigator.lifecycleStartup()
 
-        # You may use the navigator to clear or obtain costmaps
-        # navigator.clearAllCostmaps()  # also have clearLocalCostmap() and clearGlobalCostmap()
-        # global_costmap = navigator.getGlobalCostmap()
-        # local_costmap = navigator.getLocalCostmap()
+        # # Wait for navigation to fully activate, since autostarting nav2
+        # #navigator.waitUntilNav2Active()
+        # self.navigator.waitUntilNav2Active(localizer="bt_navigator")
+
+        # # If desired, you can change or load the map as well
+        # # navigator.changeMap('/path/to/map.yaml')
+
+        # # You may use the navigator to clear or obtain costmaps
+        # # navigator.clearAllCostmaps()  # also have clearLocalCostmap() and clearGlobalCostmap()
+        # # global_costmap = navigator.getGlobalCostmap()
+        # # local_costmap = navigator.getLocalCostmap()
 
     def discover_map_callback(self, request, response):
         response.sum = request.a + request.b

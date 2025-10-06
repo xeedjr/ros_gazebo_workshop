@@ -39,23 +39,33 @@
 #   ros_type_name: "tf2_msgs/msg/TFMessage"
 #   gz_type_name: "gz.msgs.Pose_V"
 #   direction: GZ_TO_ROS
-- ros_topic_name: "/diff_drive/camera_left"
-  gz_topic_name: "/camera_left"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS
-- ros_topic_name: "/diff_drive/camera_right"
-  gz_topic_name: "/camera_right"
-  ros_type_name: "sensor_msgs/msg/Image"
-  gz_type_name: "gz.msgs.Image"
-  direction: GZ_TO_ROS  
-- ros_topic_name: "/diff_drive/camera_info"
-  gz_topic_name: "/camera_info"
-  ros_type_name: "sensor_msgs/msg/CameraInfo"
-  gz_type_name: "gz.msgs.CameraInfo"
-  direction: GZ_TO_ROS  
+# - ros_topic_name: "/stereo/stereo_camera/left/image_raw"
+#   gz_topic_name: "/camera_left"
+#   ros_type_name: "sensor_msgs/msg/Image"
+#   gz_type_name: "gz.msgs.Image"
+#   direction: GZ_TO_ROS
+# - ros_topic_name: "/stereo/stereo_camera/right/image_raw"
+#   gz_topic_name: "/camera_right"
+#   ros_type_name: "sensor_msgs/msg/Image"
+#   gz_type_name: "gz.msgs.Image"
+#   direction: GZ_TO_ROS  
+# - ros_topic_name: "/stereo/stereo_camera/left/camera_info"
+#   gz_topic_name: "/camera_left/camera_info"
+#   ros_type_name: "sensor_msgs/msg/CameraInfo"
+#   gz_type_name: "gz.msgs.CameraInfo"
+#   direction: GZ_TO_ROS  
+# - ros_topic_name: "/stereo/stereo_camera/right/camera_info"
+#   gz_topic_name: "/camera_right/camera_info"
+#   ros_type_name: "sensor_msgs/msg/CameraInfo"
+#   gz_type_name: "gz.msgs.CameraInfo"
+#   direction: GZ_TO_ROS  
 - ros_topic_name: "/bno080/imu"
   gz_topic_name: "/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+- ros_topic_name: "/t265_imu"
+  gz_topic_name: "/t265_imu"
   ros_type_name: "sensor_msgs/msg/Imu"
   gz_type_name: "gz.msgs.IMU"
   direction: GZ_TO_ROS

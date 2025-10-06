@@ -37,7 +37,10 @@
   <depend>diff_drive_controller</depend>
 
   <depend>image_transport</depend>
-
+  <depend>image_pipeline</depend>
+  <depend>rtabmap_odom</depend>
+  <depend>rtabmap_slam</depend>
+  <depend>rtabmap_viz</depend>
 
   <depend>robot_localization</depend>
   <depend>imu_filter_madgwick</depend>
