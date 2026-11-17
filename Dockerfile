@@ -1,7 +1,8 @@
 # FROM ubuntu:24.04
 
 #FROM nvidia/opengl:1.0-glvnd-devel-ubuntu24.04
-FROM my/nvidia/opengl:1.2-devel-ubuntu24.04
+#FROM my/nvidia/opengl:1.2-devel-ubuntu24.04
+FROM kinetica/nvidia-opengl:ubuntu24.04
 
 LABEL versio=test
 
