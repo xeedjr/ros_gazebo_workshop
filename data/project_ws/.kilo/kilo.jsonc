@@ -1,0 +1,25 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "disabled_providers": [],
+  "provider": {
+    "llamacpp": {
+      "name": "llamacpp",
+      "npm": "@ai-sdk/openai-compatible",
+      "options": {
+        "baseURL": "http://192.168.56.50:8081/v1"
+      },
+      "models": {
+        "unsloth/Qwen3.8-27B-GGUF:Q4_K_XL": {
+          "name": "unsloth/Qwen3.8-27B-GGUF:Q4_K_XL",
+          "reasoning": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

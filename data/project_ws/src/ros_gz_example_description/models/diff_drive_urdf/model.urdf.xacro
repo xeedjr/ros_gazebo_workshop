@@ -280,7 +280,7 @@
   <joint name="camera_left_joint" type="fixed">
     <parent link="t265_link"/>
     <child link="camera_left_link"/>
-    <origin rpy="0 1.57 1.57" xyz="-0.0354 0 0"/>    
+    <origin rpy="0 1.57 1.57" xyz="-0.03014 0 0"/>    
   </joint>
 
   <link name="camera_left_optical_link">
@@ -311,7 +311,7 @@
   <joint name="camera_left_optical_joint" type="fixed">
     <parent link="t265_link"/>
     <child link="camera_left_optical_link"/>
-    <origin rpy="3.14 0 0" xyz="-0.0354 0 0"/>    
+    <origin rpy="3.14 0 0" xyz="-0.03014 0 0"/>    
   </joint>
   
   <gazebo reference="camera_left_link">
@@ -327,6 +327,9 @@
             <far>100</far>
           </clip>
 
+
+          <!-- Add camera intrinsics (scaled real rectified K) -->
+          <intrinsic>253.090204 253.090204 0.0 358.540828 194.131092</intrinsic>
 
           <!-- Add camera_info_topic -->
           <camera_info_topic>camera_left/camera_info</camera_info_topic>
@@ -372,9 +375,9 @@
   </link>
 
   <joint name="camera_right_joint" type="fixed">
-    <parent link="camera_left_link"/>
+    <parent link="t265_link"/>
     <child link="camera_right_link"/>
-    <origin rpy="0 1.57 0" xyz="0 0 0"/>    
+    <origin rpy="0 1.57 1.57" xyz="0.03014 0 0"/>    
   </joint>
 
   <link name="camera_right_optical_link">
@@ -405,7 +408,7 @@
   <joint name="camera_right_optical_joint" type="fixed">
     <parent link="t265_link"/>
     <child link="camera_right_optical_link"/>
-    <origin rpy="3.14 0 0" xyz="0.0354 0 0"/>    
+    <origin rpy="3.14 0 0" xyz="0.03014 0 0"/>    
   </joint>
 
   <gazebo reference="camera_right_link">
@@ -421,6 +424,9 @@
             <far>100</far>
           </clip>
 
+
+          <!-- Add camera intrinsics (scaled real rectified K) -->
+          <intrinsic>253.090204 253.090204 0.0 358.540828 194.131092</intrinsic>
 
           <!-- Add camera_info_topic -->
           <camera_info_topic>camera_right/camera_info</camera_info_topic>

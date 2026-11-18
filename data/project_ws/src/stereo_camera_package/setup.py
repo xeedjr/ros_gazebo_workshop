@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'stereo_camera_node = stereo_camera_package.stereo_camera_node:main'
+            'stereo_camera_node = stereo_camera_package.stereo_camera_node:main',
+            'sim_stereo_camera_node = stereo_camera_package.sim_stereo_camera_node:main'
         ],
     },
 )

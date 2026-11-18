@@ -46,7 +46,7 @@ def generate_launch_description():
     else:
         is_sim = False
 
-    is_sim = False
+    is_sim = True
 
     # Setup project paths
     pkg_project_bringup = get_package_share_directory('ros_gz_example_bringup')
@@ -113,6 +113,13 @@ def generate_launch_description():
                     '-z', '0.15'],
 
             )
+
+        sim_stereo_camera_node = Node(
+            package='stereo_camera_package',
+            executable='sim_stereo_camera_node',
+            output='screen',
+            parameters=[{'use_sim_time': use_sim_time}],
+        )
 
     else:
         use_sim_time = False
@@ -331,27 +338,6 @@ def generate_launch_description():
     )
 
 
-    stereo_image_proc_node =   GroupAction(
-            actions=[
-
-                # SetRemap(src='/camera_info',dst='/left/camera_info'),
-                # SetRemap(src='/camera_info',dst='/right/camera_info'),
-                # SetRemap(src='/camera_left',dst='/left/image_raw'),
-                # SetRemap(src='/camera_right',dst='/right/image_raw'),
-
-                IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource([PathJoinSubstitution([get_package_share_directory('stereo_image_proc'), 'launch', 'stereo_image_proc.launch.py'])]),
-                    launch_arguments=[
-                        ('left_namespace', 'stereo_camera/left'),
-                        ('right_namespace', 'stereo_camera/right'),
-                        ('namespace', 'stereo'),
-                        ('approximate_sync', 'False'),
-                        ('log-level', 'DEBUG'),
-                    ]
-                ),
-            ]
-        )
-
     image_proc_rect_left_node = Node(
         package='image_proc',
         executable='rectify_node',
@@ -465,9 +451,11 @@ def generate_launch_description():
                     # debuging tools
                 
                     
-                    stereo_image_proc_node,
+                    image_proc_rect_left_node,
+                    image_proc_rect_right_node,
+                    stereo_image_proc2,
                     rtabmap_odom_node,
-                    # rtabmap_slam_node,
+                    rtabmap_slam_node,
                     rtabmap_viz_node,
 
                     rviz,
@@ -483,6 +471,7 @@ def generate_launch_description():
                 # # image_bridge,
                 ignition_spawn_entity,
                 robot_state_publisher,
+                sim_stereo_camera_node,
 
                 delayed_actions
                 # image_proc_node
