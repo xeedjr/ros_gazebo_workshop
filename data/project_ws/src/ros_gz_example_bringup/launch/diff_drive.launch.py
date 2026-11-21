@@ -412,6 +412,7 @@ def generate_launch_description():
           'wait_imu_to_init':False,
           'use_sim_time':use_sim_time,
           'always_check_imu_tf': False,
+          'Grid/MaxObstacleHeight': "0.35",
           'publish_tf':True}]
 
     remappings=[
@@ -479,41 +480,22 @@ def generate_launch_description():
                 actions=[nav2]
             )
 
-            # Lifecycle transitions for Nav2 nodes: configure then activate.
-            # The lifecycle manager has autostart=true but does not reliably
-            # transition nodes in this environment; we drive it explicitly.
-            nav2_nodes = [
-                'controller_server',
-                'planner_server',
-                'behavior_server',
-                'bt_navigator',
-                'velocity_smoother',
-                'collision_monitor',
-                'waypoint_follower',
-                'smoother_server',
-                'route_server',
-                'docking_server',
-            ]
-
-            delayed_nav2_configure = TimerAction(
-                period=65.0,
-                actions=[
-                    ExecuteProcess(
-                        cmd=['ros2', 'lifecycle', 'set', node, 'configure'],
-                        output='screen',
-                    )
-                    for node in nav2_nodes
-                ]
-            )
-
-            delayed_nav2_activate = TimerAction(
+            # Nav2 lifecycle transitions (configure + activate) are driven
+            # explicitly, because the nav2 lifecycle_manager (autostart) stalls
+            # forever waiting for collision_monitor, which is not launched here
+            # (its node_names list is hardcoded in nav2's navigation_launch.py).
+            # The script waits for the nodes, then configures/activates them with
+            # behavior_server active before bt_navigator (so the Spin/BackUp/Wait
+            # action servers exist when bt_navigator loads its behavior tree).
+            nav2_lifecycle_script = os.path.join(
+                pkg_project_bringup, 'launch', 'activate_nav2_lifecycle.sh')
+            delayed_nav2_lifecycle = TimerAction(
                 period=70.0,
                 actions=[
                     ExecuteProcess(
-                        cmd=['ros2', 'lifecycle', 'set', node, 'activate'],
+                        cmd=['bash', nav2_lifecycle_script],
                         output='screen',
                     )
-                    for node in nav2_nodes
                 ]
             )
 
@@ -580,8 +562,7 @@ print("Gazebo auto_play: done" if done else "Gazebo auto_play: could not resume 
                 gz_auto_play,
                 delayed_actions,
                 delayed_nav2_actions,
-                delayed_nav2_configure,
-                delayed_nav2_activate,
+                delayed_nav2_lifecycle,
                 # image_proc_node
             ])
         else:

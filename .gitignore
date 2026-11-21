@@ -3,3 +3,4 @@ data/project_ws/install/
 data/project_ws/log/
 
 *.pyc
+core.*
