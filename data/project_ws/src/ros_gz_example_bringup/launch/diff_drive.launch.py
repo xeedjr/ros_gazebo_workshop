@@ -17,7 +17,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, TimerAction, ExecuteProcess
 from launch.actions import IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -110,7 +110,7 @@ def generate_launch_description():
                     '-allow_renaming', 'true',
                     '-x', '-1',
                     '-y', '0',
-                    '-z', '0.15'],
+                    '-z', '0.0'],
 
             )
 
@@ -200,9 +200,15 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
         launch_arguments={'params_file': os.path.join(pkg_project_bringup, 'config', nav2_config_file),
-                        "map":os.path.join(pkg_project_bringup, 'config', 'my_map2.yaml'),
+                        # No static map: the global costmap consumes the occupancy grid
+                        # that RTAB-Map publishes on /map.
+                        "map": '',
                         'use_sim_time': str(use_sim_time),
                         'slam': 'False',
+                        # Disable Nav2's AMCL (which would subscribe to the simulated
+                        # /scan topic) and the static map_server. RTAB-Map provides
+                        # localization via its map -> odom -> base_link TF tree and /odom.
+                        'use_localization': 'False',
                         'use_composition': 'False',
                         }.items(),
     )
@@ -398,6 +404,9 @@ def generate_launch_description():
 
     parameters_slam=[{
           'frame_id':'base_link',
+          # Publish the map -> odom transform so the TF tree is map -> odom -> base_link.
+          # This is the frame Nav2's global costmap (global_frame: map) needs.
+          'odom_frame_id':'odom',
           'subscribe_stereo':True,
           'subscribe_odom_info':True,
           'wait_imu_to_init':False,
@@ -423,9 +432,11 @@ def generate_launch_description():
             remappings=remappings,
             arguments=['-d'])
 
+    # rtabmap_viz only displays the map; it must not publish the map -> odom TF
+    # (rtabmap_slam already does), otherwise two nodes would publish the same frame.
     rtabmap_viz_node = Node(
             package='rtabmap_viz', executable='rtabmap_viz', output='screen',
-            parameters=parameters_slam,
+            parameters=parameters_slam + [{'publish_tf': False}],
             remappings=remappings)
 
 
@@ -433,24 +444,22 @@ def generate_launch_description():
 
     if (is_debugger == False):
         if (is_sim == True):
-            # Delay of 3 seconds after gz_sim
+            # Start the RTAB-Map pipeline (and controllers) first so the map frame
+            # (map -> odom -> base_link) is established before Nav2 activates.
             delayed_actions = TimerAction(
                 period=30.0,
                 actions=[
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    madgwick_filter,
+                    #madgwick_filter,
                     # robot_localization_odom,
                     # robot_localization_map,
-                    # nav2,
 
                     # custom node
-                    # my_node,
+                    my_node,
                     # map_process_node,
 
-                    # debuging tools
-                
-                    
+                    # RTAB-Map pipeline
                     image_proc_rect_left_node,
                     image_proc_rect_right_node,
                     stereo_image_proc2,
@@ -463,9 +472,104 @@ def generate_launch_description():
                 ]
             )
 
+            # Nav2 starts later so its costmaps can find the map frame in TF when
+            # the lifecycle manager activates them.
+            delayed_nav2_actions = TimerAction(
+                period=60.0,
+                actions=[nav2]
+            )
+
+            # Lifecycle transitions for Nav2 nodes: configure then activate.
+            # The lifecycle manager has autostart=true but does not reliably
+            # transition nodes in this environment; we drive it explicitly.
+            nav2_nodes = [
+                'controller_server',
+                'planner_server',
+                'behavior_server',
+                'bt_navigator',
+                'velocity_smoother',
+                'collision_monitor',
+                'waypoint_follower',
+                'smoother_server',
+                'route_server',
+                'docking_server',
+            ]
+
+            delayed_nav2_configure = TimerAction(
+                period=65.0,
+                actions=[
+                    ExecuteProcess(
+                        cmd=['ros2', 'lifecycle', 'set', node, 'configure'],
+                        output='screen',
+                    )
+                    for node in nav2_nodes
+                ]
+            )
+
+            delayed_nav2_activate = TimerAction(
+                period=70.0,
+                actions=[
+                    ExecuteProcess(
+                        cmd=['ros2', 'lifecycle', 'set', node, 'activate'],
+                        output='screen',
+                    )
+                    for node in nav2_nodes
+                ]
+            )
+
+            # Automatically resume (play) the simulator on startup so it does not
+            # stay paused waiting for a manual "play" click.
+            #
+            # The ROS bridge does not expose the sim's world-control service, so we
+            # call it directly over gz-transport: /world/<name>/control with a
+            # WorldControl(pause=False). The script discovers the world name and
+            # retries until the service is up. Toggle with: auto_play:=false
+            gz_auto_play_script = '''
+import sys, time
+for _p in ("/opt/ros/jazzy/opt/gz_transport_vendor/lib/python",
+           "/opt/ros/jazzy/opt/gz_msgs_vendor/lib/python"):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+import gz.transport as t
+from gz.msgs10.world_control_pb2 import WorldControl
+from gz.msgs10.boolean_pb2 import Boolean
+node = t.Node()
+wc = WorldControl()
+wc.pause = False
+def find_control():
+    for s in node.service_list():
+        if s.startswith("/world/") and s.endswith("/control"):
+            return s
+    return None
+done = False
+for _ in range(30):
+    svc = find_control()
+    if svc:
+        try:
+            ok, _ = node.request(svc, wc, WorldControl, Boolean, 2000)
+            if ok:
+                print("Gazebo auto_play: simulation resumed via " + svc)
+                done = True
+                break
+        except Exception:
+            pass
+    time.sleep(1)
+print("Gazebo auto_play: done" if done else "Gazebo auto_play: could not resume simulation")
+'''
+            gz_auto_play = TimerAction(
+                period=10.0,
+                actions=[ExecuteProcess(
+                    cmd=['python3', '-c', gz_auto_play_script],
+                    output='screen',
+                    condition=IfCondition(LaunchConfiguration('auto_play')),
+                )],
+            )
+
             return LaunchDescription([
                 DeclareLaunchArgument('rviz', default_value='true',
                                     description='Open RViz.'),
+                DeclareLaunchArgument('auto_play', default_value='true',
+                                    description='Automatically resume/play the simulator on startup.'),
                 gz_sim,
                 bridge,
                 # # image_bridge,
@@ -473,7 +577,11 @@ def generate_launch_description():
                 robot_state_publisher,
                 sim_stereo_camera_node,
 
-                delayed_actions
+                gz_auto_play,
+                delayed_actions,
+                delayed_nav2_actions,
+                delayed_nav2_configure,
+                delayed_nav2_activate,
                 # image_proc_node
             ])
         else:

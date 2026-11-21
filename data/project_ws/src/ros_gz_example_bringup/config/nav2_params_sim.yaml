@@ -157,34 +157,15 @@ local_costmap:
       height: 3
       resolution: 0.05
       footprint: "[[0.11, 0.11], [0.11, -0.11], [-0.11, -0.11], [-0.11, 0.11]]"
-      plugins: ["voxel_layer", "inflation_layer"]
+      # Obstacles come from RTAB-Map's /map via the static layer (no lidar/scan).
+      plugins: ["static_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         cost_scaling_factor: 3.0
         inflation_radius: 0.55
-      voxel_layer:
-        plugin: "nav2_costmap_2d::VoxelLayer"
-        enabled: True
-        publish_voxel_map: True
-        origin_z: 0.0
-        z_resolution: 0.05
-        z_voxels: 16
-        max_obstacle_height: 2.0
-        mark_threshold: 0
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
-      static_layer:
-        plugin: "nav2_costmap_2d::StaticLayer"
-        map_subscribe_transient_local: True
       always_send_full_costmap: True
 
 global_costmap:
@@ -198,21 +179,8 @@ global_costmap:
       footprint: "[[0.11, 0.11], [0.11, -0.11], [-0.11, -0.11], [-0.11, 0.11]]"
       resolution: 0.05
       track_unknown_space: true
-      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
-      obstacle_layer:
-        plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: True
-        observation_sources: scan
-        scan:
-          topic: /scan
-          max_obstacle_height: 2.0
-          clearing: True
-          marking: True
-          data_type: "LaserScan"
-          raytrace_max_range: 3.0
-          raytrace_min_range: 0.0
-          obstacle_max_range: 2.5
-          obstacle_min_range: 0.0
+      # Obstacles come from RTAB-Map's /map via the static layer (no lidar/scan).
+      plugins: ["static_layer", "inflation_layer"]
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
@@ -337,13 +305,7 @@ collision_monitor:
       min_points: 6
       visualize: False
       enabled: True
-    observation_sources: ["scan"]
-    scan:
-      type: "scan"
-      topic: "/scan"
-      min_height: 0.15
-      max_height: 2.0
-      enabled: True
+    observation_sources: []
 
 docking_server:
   ros__parameters:

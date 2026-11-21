@@ -14,7 +14,9 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    entrypoint: "sleep 99999d"
+    entrypoint: "/root/data/project_ws/build2.sh"
+    stdin_open: true
+    tty: true
     network_mode: host  
     # ipc: "host"
     # pid: "host"
@@ -26,3 +28,11 @@ services:
       - ./data:/root/data
       - /dev/input:/dev/input
       - /dev:/dev
+      - ros2_data:/root/.ros
+      - gazebo_data:/root/.gz
+      - gazebo_classic_data:/root/.gazebo
+
+volumes:
+  ros2_data:
+  gazebo_data:
+  gazebo_classic_data:

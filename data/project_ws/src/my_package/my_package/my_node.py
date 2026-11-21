@@ -28,8 +28,8 @@ class MinimalPublisher(Node):
             Twist,
             '/cmd_vel_nav',
             self.callback_cmd_vel,
-            0)
-        self.cmd_vel_pub = self.create_publisher(TwistStamped, '/diff_drive_base_controller/cmd_vel', 0)
+            10)
+        self.cmd_vel_pub = self.create_publisher(TwistStamped, '/diff_drive_base_controller/cmd_vel', 10)
 
 
         # # Subscription to the marker array topic
