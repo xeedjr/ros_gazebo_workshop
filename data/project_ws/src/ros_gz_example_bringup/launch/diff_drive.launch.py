@@ -108,7 +108,7 @@ def generate_launch_description():
             arguments=['-string', robot_description_config,
                     '-name', 'diff_drive',
                     '-allow_renaming', 'true',
-                    '-x', '-1',
+                    '-x', '0',
                     '-y', '0',
                     '-z', '0.0'],
 
@@ -119,6 +119,34 @@ def generate_launch_description():
             executable='sim_stereo_camera_node',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
+        )
+
+        # --- Stereo camera calibration pipeline (replaces Nav2 / RTAB-Map) ---
+        # Consumes the stereo images republished by sim_stereo_camera_node from
+        # the Gazebo cameras, detects the chessboard, and writes the recovered
+        # intrinsics to new yaml files under calibration_sim/.
+        stereo_calibration_node = Node(
+            package='stereo_camera_package',
+            executable='stereo_calibration_node',
+            name='stereo_calibration_node',
+            output='screen',
+            parameters=[{
+                'pattern_cols': 9,
+                'pattern_rows': 6,
+                'square': 0.04,
+                'min_poses': 16,
+                'max_capture_time': 120.0,
+                'output_dir': '/root/data/project_ws/calibration_sim',
+            }],
+        )
+
+        # Teleports the kinematic calibration_board through many poses so the
+        # calibration node sees the chessboard from diverse viewpoints.
+        chessboard_mover_node = Node(
+            package='stereo_camera_package',
+            executable='chessboard_mover',
+            name='chessboard_mover',
+            output='screen',
         )
 
     else:
@@ -452,24 +480,15 @@ def generate_launch_description():
                 actions=[
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    #madgwick_filter,
-                    # robot_localization_odom,
-                    # robot_localization_map,
 
                     # custom node
                     my_node,
-                    # map_process_node,
 
-                    # RTAB-Map pipeline
-                    image_proc_rect_left_node,
-                    image_proc_rect_right_node,
-                    stereo_image_proc2,
-                    rtabmap_odom_node,
-                    rtabmap_slam_node,
-                    rtabmap_viz_node,
-
-                    rviz,
-                    # foxglove_bridge
+                    # Stereo camera calibration pipeline (no Nav2 / RTAB-Map).
+                    # The calibration node consumes the stereo images and the
+                    # mover teleports the chessboard for diverse poses.
+                    stereo_calibration_node,
+                    chessboard_mover_node,
                 ]
             )
 
@@ -561,8 +580,6 @@ print("Gazebo auto_play: done" if done else "Gazebo auto_play: could not resume 
 
                 gz_auto_play,
                 delayed_actions,
-                delayed_nav2_actions,
-                delayed_nav2_lifecycle,
                 # image_proc_node
             ])
         else:

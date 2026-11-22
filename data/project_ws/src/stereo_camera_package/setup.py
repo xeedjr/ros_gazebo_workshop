@@ -21,7 +21,9 @@ setup(
     entry_points={
         'console_scripts': [
             'stereo_camera_node = stereo_camera_package.stereo_camera_node:main',
-            'sim_stereo_camera_node = stereo_camera_package.sim_stereo_camera_node:main'
+            'sim_stereo_camera_node = stereo_camera_package.sim_stereo_camera_node:main',
+            'stereo_calibration_node = stereo_camera_package.stereo_calibration_node:main',
+            'chessboard_mover = stereo_camera_package.chessboard_mover:main'
         ],
     },
 )
