@@ -1,0 +1,31 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+# Let the nvidia container runtime mount the full host driver payload,
+# including the Xorg nvidia module (nvidia_drv.so) and GLX libraries.
+# Do NOT apt-install an nvidia driver package here (host version mismatch risk).
+ENV NVIDIA_DRIVER_CAPABILITIES=all
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    xserver-xorg-core \
+    x11vnc \
+    novnc \
+    x11-apps \
+    x11-xserver-utils \
+    xterm \
+    mesa-utils \
+    xfonts-base \
+    fontconfig \
+    libgl1 \
+    xfce4 \
+    xfce4-terminal \
+    thunar \
+    dbus-x11 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY x11/xorg-gpu.conf /etc/X11/xorg-gpu.conf
+COPY x11/x11-start.sh /usr/local/bin/x11-start.sh
+RUN chmod +x /usr/local/bin/x11-start.sh
+
+ENTRYPOINT ["/usr/local/bin/x11-start.sh"]
