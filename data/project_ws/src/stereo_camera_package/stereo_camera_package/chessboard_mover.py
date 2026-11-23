@@ -100,12 +100,14 @@ def make_poses() -> list:
     ]
     poses = []
     i = 0
-    # Vary depth (x) fastest so the earliest poses span the full range of
-    # distances. Changing parallax with depth is what best constrains the
-    # relative camera rotation/translation in stereo calibration; holding depth
-    # fixed lets the solver trade a spurious camera rotation for translation.
-    for y in ys:
-        for z in zs:
+    # Vary the lateral position (y) fastest so the earliest poses sweep the full
+    # left/right range in front of the cameras. Stereo calibration needs the
+    # board on BOTH sides of the optical axis to constrain the baseline and the
+    # relative camera rotation; the previous ordering held y fixed for the first
+    # 16 poses, letting the solver trade a spurious rotation for a wrong
+    # baseline. Depth (x) and height (z) still vary across the full set.
+    for z in zs:
+        for y in ys:
             for x in xs:
                 tr, tp, ty = tilts[i % len(tilts)]
                 pos = np.array([x, y, z])

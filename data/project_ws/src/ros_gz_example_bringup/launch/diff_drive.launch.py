@@ -134,8 +134,8 @@ def generate_launch_description():
                 'pattern_cols': 9,
                 'pattern_rows': 6,
                 'square': 0.04,
-                'min_poses': 16,
-                'max_capture_time': 120.0,
+                'min_poses': 20,
+                'max_capture_time': 180.0,
                 'output_dir': '/root/data/project_ws/calibration_sim',
             }],
         )

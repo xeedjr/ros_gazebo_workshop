@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<material name="checkerboard">
+  <ambient>1 1 1 1</ambient>
+  <diffuse>1 1 1 1</diffuse>
+  <specular>0 0 0 1</specular>
+  <texture>
+    <image>/root/data/project_ws/src/ros_gz_example_gazebo/worlds/checkerboard.png</image>
+  </texture>
+</material>
