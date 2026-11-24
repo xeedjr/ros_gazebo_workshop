@@ -5,6 +5,10 @@ DISPLAY_NUM=99
 XORG_LOG="/var/log/Xorg.${DISPLAY_NUM}.log"
 export DISPLAY=":${DISPLAY_NUM}"
 
+# Remove a stale socket from a previous run (the socket lives on a named
+# volume shared with the sim container, so it survives container recreates).
+rm -f "/tmp/.X11-unix/X${DISPLAY_NUM}"
+
 echo "[x11-start] starting Xorg :${DISPLAY_NUM}"
 Xorg :${DISPLAY_NUM} -ac -listen tcp \
     -config /etc/X11/xorg-gpu.conf \

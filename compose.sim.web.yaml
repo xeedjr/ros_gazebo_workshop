@@ -21,6 +21,8 @@ services:
     ports:
       - "6080:6080"   # noVNC web (http://localhost:6080/vnc.html)
       - "5900:5900"   # VNC (x11vnc)
+    volumes:
+      - x11_unix:/tmp/.X11-unix   # X socket, shared with ros2_gazebo (local GLX/DRI3)
     healthcheck:
       test: ["CMD-SHELL", "bash -c ':> /dev/tcp/127.0.0.1/6080' 2>/dev/null || exit 1"]
       interval: 5s
@@ -53,11 +55,16 @@ services:
     #cpuset: "1-5"
     environment:
       - IS_SIM=True
-      - DISPLAY=x11:99
+      # Local X socket (shared x11_unix volume), NOT x11:99 over TCP:
+      # the nvidia GLX client cannot create contexts on a remote (TCP)
+      # connection (X_GLXCreateNewContext -> BadValue), which crashes
+      # gz sim's GUI and breaks RViz2/rtabmap_viz rendering.
+      - DISPLAY=:99
     volumes:
       - ./data:/root/data
       - /dev/input:/dev/input
       - /dev:/dev
+      - x11_unix:/tmp/.X11-unix
       - ros2_data:/root/.ros
       - gazebo_data:/root/.gz
       - gazebo_classic_data:/root/.gazebo
@@ -66,3 +73,4 @@ volumes:
   ros2_data:
   gazebo_data:
   gazebo_classic_data:
+  x11_unix:   # X11 socket dir shared by x11 and ros2_gazebo
