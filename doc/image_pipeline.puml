@@ -1,0 +1,97 @@
+@startuml image_pipeline
+skinparam shadowing false
+skinparam roundCorner 10
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam ArrowThickness 2
+skinparam componentStyle uml2
+left to right direction
+
+title <size:18><b>Image Pipeline: Stereo Cameras → RTAB-Map</b></size>\n<size:12>ROS 2 Jazzy + Gazebo (gz_sim) — simulated and real camera hardware</size>
+
+legend top right
+  |= Image path |= Color |
+  | <b>Simulated</b> camera (Gazebo → ROS) | <back:#AED6F1>            </back> |
+  | <b>Real</b> camera HW (USB V4L2 → ROS)  | <back:#A9DFBF>            </back> |
+  | <b>Shared</b> SLAM pipeline (rectify → RTAB-Map) | <back:#FAD7A0>            </back> |
+endlegend
+
+' ============================ SIM PATH (blue) ============================
+together {
+  component "<b>Gazebo (gz_sim) sensors</b>\ncamera_left · camera_right\n----\nSensor: pinhole <i>camera</i>\n640×480 @ 30 fps · fov 1.75 rad (~100°)\nintrinsics = scaled real-rectified K\nclip near 0.1 / far 100 m" as GZCam #AED6F1
+
+  component "<b>ros_gz_bridge</b>\n<i>parameter_bridge</i>\n----\nGZ↔ROS message conversion\ngz.msgs.Image → sensor_msgs.Image\ngz.msgs.CameraInfo → sensor_msgs/CameraInfo\n(see ros_gz_example_bridge.yaml)" as Bridge #AED6F1
+
+  component "<b>sim_stereo_camera_node</b>\n<i>stereo_camera_package</i>\n----\nRepublisher / normalizer\n· sets header.frame_id (bridge leaves it empty)\n· rebuilds CameraInfo: R=I, D=[] (undistorted)\n· stereo-correct P: left Tx=0, right Tx=−15.2566\n→ single source of canonical L/R topics" as SimNode #AED6F1
+}
+
+' ============================ REAL PATH (green) ============================
+together {
+  component "<b>USB stereo camera (HW)</b>\n/dev/video2 (V4L2)\n----\nFourCC: <b>MJPG</b>\n3200×1200 wide frame (single sensor)\nboth eyes side-by-side in one stream" as UsbCam #A9DFBF
+
+  component "<b>stereo_camera_node</b>\n<i>stereo_camera_package</i>\n----\ncv2.VideoCapture + CvBridge\n· decodes MJPG → BGR\n· splits frame → L / R 1600×1200 bgr8\n· CameraInfo from left.yaml / right.yaml:\n  plumb_bob distortion D(5), full K·R·P\n  right P Tx=−38.1414 (38.14 mm baseline)" as RealNode #A9DFBF
+}
+
+note right of UsbCam
+  A separate single <b>usb_cam</b> node
+  (camera.yaml) also exists in the
+  real branch, but it only feeds RViz —
+  it is NOT part of this stereo pipeline.
+end note
+
+' ============================ SHARED PIPELINE (orange) ============================
+together {
+  component "<b>image_proc</b>\n<i>rectify_node</i> ×2 (left + right)\n----\nDistortion removal + rectification\nimage_raw → image_rect\n(sim: R=I, D=[] ⇒ near pass-through;\n real: applies plumb_bob + rectify)" as Rect #FAD7A0
+
+  component "<b>stereo_image_proc</b>\n<i>disparity_node</i> (ns /stereo)\n----\nBlock/SGM stereo matching\n→ /stereo/disparity (DisparityImage)\n→ /stereo/points (PointCloud2, 3-D)\n(terminal branch — depth view)" as Dispar #FAD7A0
+
+  component "<b>rtabmap_odom</b>\n<i>stereo_odometry</i>\n----\nStereo visual odometry\nsubscribe_stereo,\nImagesAlreadyRectified=true\n→ /odom (nav_msgs/Odometry)\n→ TF <b>odom → base_link</b>" as Odom #FAD7A0
+
+  component "<b>rtabmap_slam</b>\n<i>rtabmap</i> (-d rtabmap.db)\n----\nSLAM + occupancy mapping\nsubscribe_odom_info=true\n→ /map (nav_msgs/OccupancyGrid)\n→ TF <b>map → odom</b>\nGrid/MaxObstacleHeight=0.35" as Slam #FAD7A0
+
+  component "<b>rtabmap_viz</b>\n<i>rtabmap_viz</i>\n----\nMap / point-cloud visualization\npublish_tf=false\n(only rtabmap_slam publishes TF)" as Viz #FAD7A0
+}
+
+' External consumer (grey, dashed)
+component "<b>Nav2</b>\n<i>nav2_bringup</i>\n----\nglobal costmap (static layer)\nconsumes /map for localization" as NAV2 #E5E7E9
+
+' ============================ EDGES ============================
+' -- sim path (blue arrows) --
+GZCam   -[#21618C]-> Bridge : <b>gz.msgs.Image</b> + <b>gz.msgs.CameraInfo</b>\n/camera_left · /camera_left/camera_info\n/camera_right · /camera_right/camera_info
+Bridge  -[#21618C]-> SimNode : <b>sensor_msgs/Image</b> + <b>sensor_msgs/CameraInfo</b>\n.../left/image_raw_raw · .../left/camera_info_raw\n.../right/image_raw_raw · .../right/camera_info_raw
+SimNode -[#21618C]-> Rect   : <b>sensor_msgs/Image</b> BGR8 640×480 (undistorted)\n+ <b>sensor_msgs/CameraInfo</b>\n/stereo/stereo_camera/{left,right}/image_raw\n/stereo/stereo_camera/{left,right}/camera_info
+
+' -- real path (green arrows) --
+UsbCam  -[#1E8449]-> RealNode : <b>V4L2 MJPG 3200×1200</b> (raw wide frame)
+RealNode-[#1E8449]-> Rect    : <b>sensor_msgs/Image</b> bgr8 1600×1200 (plumb_bob distorted)\n+ <b>sensor_msgs/CameraInfo</b> (full K·D·R·P)\n/stereo/stereo_camera/{left,right}/image_raw\n/stereo/stereo_camera/{left,right}/camera_info
+
+' -- shared pipeline (orange arrows) --
+Rect    -[#B9770E]-> Dispar : <b>sensor_msgs/Image</b> rectified + CameraInfo\n.../{left,right}/image_rect
+Rect    -[#B9770E]-> Odom   : <b>sensor_msgs/Image</b> rectified + CameraInfo\n.../{left,right}/image_rect
+Odom    -[#B9770E]-> Slam   : <b>nav_msgs/Odometry</b> /odom\n+ TF odom→base_link
+Slam    -[#B9770E]-> Viz    : map data (grid / point cloud)
+Slam    ..[#666666]..> NAV2 : <b>nav_msgs/OccupancyGrid</b> /map\n+ TF map→odom
+
+' ============================ KEY DIFFERENCES ============================
+note bottom of Rect
+  <b>Image-type differences per path</b>
+  ─────────────────────────────
+  <back:#AED6F1><b> SIM </b></back>
+  · 640×480 pinhole, BGR8, <b>no distortion</b> (D=[])
+  · intrinsics baked into Gazebo (scaled real K)
+  · baseline 15.26 mm (stereo P, Tx)
+  · rectify ≈ pass-through (already rectified)
+  ─────────────────────────────
+  <back:#A9DFBF><b> REAL </b></back>
+  · 2×1600×1200, bgr8, <b>plumb_bob distortion</b> (5 coeffs)
+  · full calibration from left/right.yaml (narrow_stereo)
+  · baseline 38.14 mm (right P, Tx)
+  · rectify actually warps the image
+  ─────────────────────────────
+  <back:#FAD7A0><b> SHARED </b></back>
+  · both converge on identical canonical topics
+  · rectified sensor_msgs/Image + CameraInfo
+  → RTAB-Map stereo odometry → SLAM → /map
+end note
+
+@enduml

@@ -2,16 +2,16 @@
 
 ## Rules
 
-- Run commands only inside the Docker container.
+- Run `xhost +local:` before starting the simulation container to grant X display access.
 - Do not run commands on the host that are not related to the container.
 - Do not modify files outside this folder.
 
 ## Starting the simulation container
 
-The simulation (ROS 2 Jazzy + Gazebo) runs in the `ros2_gazebo` service defined in `compose.sim.yaml`. Start it from the host, **attached** (no `-d`) so `build2.sh` output is streamed to the agent's console:
+The simulation (ROS 2 Jazzy + Gazebo) runs in the `ros2_gazebo` service defined in `compose.sim.yaml`. Start it from the host using the provided script, which grants X display access and starts the container **attached** (no `-d`) so `build2.sh` output is streamed to the agent's console:
 
 ```bash
-docker compose -f compose.sim.yaml up
+./start_sim.sh
 ```
 
 To follow logs of an already-running stack:
