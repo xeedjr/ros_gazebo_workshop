@@ -218,6 +218,9 @@
     <origin rpy="0 0 0" xyz="-0.10 0 0.034"/>
   </joint>
 
+
+
+
   <joint name="t265_joint" type="fixed">
     <parent link="base_link"/>
     <child link="t265_link"/>
@@ -325,20 +328,8 @@
           </clip>
 
 
-          <!-- Add camera intrinsics (scaled real rectified K).
-               Gazebo Harmonic (gz-sensors9) only reads custom intrinsics from the
-               <lens><intrinsics> element (in pixels). The legacy <intrinsic>
-               element is ignored by the renderer, which then fell back to
-               <horizontal_fov> and produced a centered fx~267 camera. -->
-          <lens>
-            <intrinsics>
-              <fx>253.090204</fx>
-              <fy>253.090204</fy>
-              <s>0.0</s>
-              <cx>358.540828</cx>
-              <cy>194.131092</cy>
-            </intrinsics>
-          </lens>
+          <!-- Add camera intrinsics (scaled real rectified K) -->
+          <intrinsic>253.090204 253.090204 0.0 358.540828 194.131092</intrinsic>
 
           <!-- Add camera_info_topic -->
           <camera_info_topic>camera_left/camera_info</camera_info_topic>
@@ -434,20 +425,8 @@
           </clip>
 
 
-          <!-- Add camera intrinsics (scaled real rectified K).
-               Gazebo Harmonic (gz-sensors9) only reads custom intrinsics from the
-               <lens><intrinsics> element (in pixels). The legacy <intrinsic>
-               element is ignored by the renderer, which then fell back to
-               <horizontal_fov> and produced a centered fx~267 camera. -->
-          <lens>
-            <intrinsics>
-              <fx>253.090204</fx>
-              <fy>253.090204</fy>
-              <s>0.0</s>
-              <cx>358.540828</cx>
-              <cy>194.131092</cy>
-            </intrinsics>
-          </lens>
+          <!-- Add camera intrinsics (scaled real rectified K) -->
+          <intrinsic>253.090204 253.090204 0.0 358.540828 194.131092</intrinsic>
 
           <!-- Add camera_info_topic -->
           <camera_info_topic>camera_right/camera_info</camera_info_topic>
