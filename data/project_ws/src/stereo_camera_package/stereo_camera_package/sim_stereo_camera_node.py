@@ -5,17 +5,27 @@ Mirrors stereo_camera_node in real mode: single source of the final
 /stereo/stereo_camera/{left,right}/image_raw + camera_info topics. The
 ros_gz bridge feeds this node the internal *_raw topics; the node sets the
 image header.frame_id (ros_gz_bridge does not set it; RTAB-Map needs
-camera_left_optical_link / camera_right_optical_link for TF) and
-republishes CameraInfo with R=I, D=[] and a stereo-correct P (left Tx=0,
-right Tx=stereo_tx_right), since Gazebo publishes per-camera pinhole
-intrinsics with Tx=0.
+camera_left_optical_link / camera_right_optical_link for TF) and fills the
+CameraInfo (K, D, R, P) from the stereo calibration yaml files written by
+the sim calibration run (calibration_sim/left_sim.yaml / right_sim.yaml).
+If a yaml is missing or unreadable it falls back to the Gazebo pass-through
+K with a stereo-correct P (left Tx=0, right Tx=stereo_tx_right).
 """
 
 from __future__ import annotations
 
 import rclpy
+import yaml
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
+
+
+def _load_calib(path: str) -> dict | None:
+    try:
+        with open(path, "r") as f:
+            return yaml.safe_load(f)
+    except (OSError, yaml.YAMLError):
+        return None
 
 
 class SimStereoCameraNode(Node):
@@ -26,11 +36,30 @@ class SimStereoCameraNode(Node):
         self.declare_parameter("stereo_tx_right", -15.256576)
         self.declare_parameter("frame_id_left", "camera_left_optical_link")
         self.declare_parameter("frame_id_right", "camera_right_optical_link")
+        self.declare_parameter(
+            "left_calib_file",
+            "/root/data/project_ws/calibration_sim/left_sim.yaml")
+        self.declare_parameter(
+            "right_calib_file",
+            "/root/data/project_ws/calibration_sim/right_sim.yaml")
 
         self.stereo_tx_right = float(
             self.get_parameter("stereo_tx_right").value)
         self.frame_id_left = self.get_parameter("frame_id_left").value
         self.frame_id_right = self.get_parameter("frame_id_right").value
+
+        self.left_calib = _load_calib(
+            self.get_parameter("left_calib_file").value)
+        self.right_calib = _load_calib(
+            self.get_parameter("right_calib_file").value)
+        for side, calib in (("left", self.left_calib),
+                            ("right", self.right_calib)):
+            if calib is None:
+                self.get_logger().warning(
+                    f"{side} calibration yaml not loaded, "
+                    "falling back to Gazebo camera_info pass-through")
+            else:
+                self.get_logger().info(f"{side} calibration yaml loaded")
 
         # Publishers (final topics consumed by image_proc / disparity / rtabmap)
         self.left_image_pub = self.create_publisher(
@@ -56,11 +85,20 @@ class SimStereoCameraNode(Node):
             CameraInfo, "/stereo/stereo_camera/right/camera_info_raw",
             self._right_info_cb, 10)
 
-    def _make_camera_info(self, msg: CameraInfo,
-                          frame_id: str, tx: float) -> CameraInfo:
+    def _make_camera_info(self, msg: CameraInfo, frame_id: str,
+                          calib: dict | None, tx: float) -> CameraInfo:
         out = CameraInfo()
         out.header.stamp = msg.header.stamp
         out.header.frame_id = frame_id
+        if calib is not None:
+            out.width = int(calib["image_width"])
+            out.height = int(calib["image_height"])
+            out.distortion_model = calib["distortion_model"]
+            out.d = [float(v) for v in calib["distortion_coefficients"]["data"]]
+            out.k = [float(v) for v in calib["camera_matrix"]["data"]]
+            out.r = [float(v) for v in calib["rectification_matrix"]["data"]]
+            out.p = [float(v) for v in calib["projection_matrix"]["data"]]
+            return out
         out.width = msg.width
         out.height = msg.height
         out.k = list(msg.k)
@@ -88,12 +126,14 @@ class SimStereoCameraNode(Node):
 
     def _left_info_cb(self, msg: CameraInfo) -> None:
         self.left_info_pub.publish(
-            self._make_camera_info(msg, self.frame_id_left, 0.0))
+            self._make_camera_info(
+                msg, self.frame_id_left, self.left_calib, 0.0))
 
     def _right_info_cb(self, msg: CameraInfo) -> None:
         self.right_info_pub.publish(
             self._make_camera_info(
-                msg, self.frame_id_right, self.stereo_tx_right))
+                msg, self.frame_id_right, self.right_calib,
+                self.stereo_tx_right))
 
 
 def main(args: list[str] | None = None) -> None:
