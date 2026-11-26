@@ -18,8 +18,8 @@ Optional parameters (pass with `--ros-args -p`):
 | `pattern_cols`         | int   | `9`                                  | Chessboard columns (interior)        |
 | `pattern_rows`         | int   | `6`                                  | Chessboard rows (interior)           |
 | `square`               | float | `0.04`                               | Square size in metres                |
-| `left_topic`           | str   | `/stereo/stereo_camera/left/image_raw`  | Left image topic               |
-| `right_topic`          | str   | `/stereo/stereo_camera/right/image_raw` | Right image topic              |
+| `left_topic`   | str    | `/stereo/stereo_camera/left/image_raw_raw`  | Left image topic (bridge raw, unprocessed) |
+| `right_topic`  | str    | `/stereo/stereo_camera/right/image_raw_raw` | Right image topic (bridge raw, unprocessed) |
 | `checkerboard_flags`   | int   | `cv2.CALIB_CB_FAST_CHECK`            | OpenCV chessboard flags              |
 | `max_chessboard_speed` | float | `-1.0`                               | Max board speed px/s (-1 = disabled) |
 | `publish_annotated`    | bool  | `true`                               | Publish annotated images             |
@@ -102,9 +102,10 @@ Creates `output_dir/left/00000.png`, `output_dir/right/00000.png`, etc.
 
 ## Using with the Gazebo Sim (this workspace)
 
-The sim publishes stereo images on:
-- `/stereo/stereo_camera/left/image_raw`
-- `/stereo/stereo_camera/right/image_raw`
+The sim exposes stereo images on the ros_gz_bridge raw (unprocessed) topics,
+which this node consumes directly:
+- `/stereo/stereo_camera/left/image_raw_raw`
+- `/stereo/stereo_camera/right/image_raw_raw`
 
 The `chessboard_mover` node teleports a chessboard through 80 poses
 (~4 s each, 320 s total). Run both together:

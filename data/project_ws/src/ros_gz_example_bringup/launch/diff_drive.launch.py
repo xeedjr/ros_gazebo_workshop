@@ -114,17 +114,25 @@ def generate_launch_description():
 
             )
 
-        sim_stereo_camera_node = Node(
-            package='stereo_camera_package',
-            executable='sim_stereo_camera_node',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}],
-        )
+        # NOTE: sim_stereo_camera_node is NOT launched anymore. The calibration
+        # consumers below subscribe DIRECTLY to the ros_gz_bridge raw image
+        # topics (/stereo/stereo_camera/{left,right}/image_raw_raw) -- the
+        # unprocessed Gazebo frames -- instead of the republished /image_raw
+        # stream with the rebuilt CameraInfo. Re-enable it only if other
+        # consumers (RTAB-Map / image_proc) need that processed stream:
+        #
+        # sim_stereo_camera_node = Node(
+        #     package='stereo_camera_package',
+        #     executable='sim_stereo_camera_node',
+        #     output='screen',
+        #     parameters=[{'use_sim_time': use_sim_time}],
+        # )
 
         # --- Stereo camera calibration pipeline (replaces Nav2 / RTAB-Map) ---
-        # Consumes the stereo images republished by sim_stereo_camera_node from
-        # the Gazebo cameras, detects the chessboard, and writes the recovered
-        # intrinsics to new yaml files under calibration_sim/.
+        # Consumes the unprocessed stereo images straight from the ros_gz
+        # bridge (/stereo/stereo_camera/{left,right}/image_raw_raw), detects the
+        # chessboard, and writes the recovered intrinsics to new yaml files
+        # under calibration_sim/.
         stereo_calibration_node = Node(
             package='stereo_camera_package',
             executable='stereo_calibration_node',
@@ -485,8 +493,9 @@ def generate_launch_description():
                     my_node,
 
                     # Stereo camera calibration pipeline (no Nav2 / RTAB-Map).
-                    # The calibration node consumes the stereo images and the
-                    # mover teleports the chessboard for diverse poses.
+                    # The calibration node consumes the unprocessed stereo
+                    # images directly from the ros_gz bridge, and the mover
+                    # teleports the chessboard for diverse poses.
                     stereo_calibration_node,
                     chessboard_mover_node,
                 ]
@@ -576,7 +585,7 @@ print("Gazebo auto_play: done" if done else "Gazebo auto_play: could not resume 
                 # # image_bridge,
                 ignition_spawn_entity,
                 robot_state_publisher,
-                sim_stereo_camera_node,
+                # sim_stereo_camera_node,  # calibration reads the bridge raw topics directly
 
                 gz_auto_play,
                 delayed_actions,

@@ -141,10 +141,12 @@ class StereoCalibHeadlessNode(Node):
         self.declare_parameter("pattern_cols", 9)
         self.declare_parameter("pattern_rows", 6)
         self.declare_parameter("square", 0.04)
+        # Unprocessed stereo frames straight from the ros_gz bridge (the
+        # bridge's GZ_TO_ROS output), bypassing any republish/processing node.
         self.declare_parameter("left_topic",
-                               "/stereo/stereo_camera/left/image_raw")
+                               "/stereo/stereo_camera/left/image_raw_raw")
         self.declare_parameter("right_topic",
-                               "/stereo/stereo_camera/right/image_raw")
+                               "/stereo/stereo_camera/right/image_raw_raw")
         self.declare_parameter("checkerboard_flags",
                                int(cv2.CALIB_CB_FAST_CHECK))
         self.declare_parameter("max_chessboard_speed", -1.0)

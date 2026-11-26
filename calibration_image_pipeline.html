@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stereo Calibration — Image Pipeline (Gazebo Sim → Calibration)</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --line:#2d3644;
+    --txt:#e6edf3; --dim:#9aa7b4; --acc:#58a6ff; --acc2:#7ee787;
+    --warn:#f2cc60; --bad:#ff7b72; --chip:#21304a;
+    --gz:#8957e5; --bridge:#3195d6; --ros:#3fb950; --cal:#e3a008; --act:#f778ba;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:.2px}
+  h2{font-size:20px;margin:44px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h3{font-size:15px;margin:20px 0 8px;color:var(--acc)}
+  .sub{color:var(--dim);margin:0 0 24px;font-size:14px}
+  code{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    background:#0a0e14;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font-size:12.5px;color:#c9d5e3}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;
+    background:var(--chip);color:var(--acc);vertical-align:middle;letter-spacing:.3px}
+
+  /* ---- flow diagram ---- */
+  .flow{display:flex;flex-direction:column;align-items:stretch;gap:0;margin-top:8px}
+  .stage{position:relative;border:1px solid var(--line);border-radius:12px;
+    background:var(--panel);padding:14px 16px 16px}
+  .stage .head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .num{flex:0 0 auto;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:13px;color:#0d1117;background:var(--acc)}
+  .stage h4{margin:0;font-size:16px}
+  .stage .desc{color:var(--dim);font-size:13px;margin:6px 0 0 36px}
+  .arrow{align-self:center;color:var(--dim);font-size:22px;line-height:1;margin:7px 0;
+    display:flex;flex-direction:column;align-items:center;gap:1px}
+  .arrow small{font-size:11px;color:var(--acc);max-width:600px;text-align:center;line-height:1.35}
+
+  .cols{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;margin-left:36px}
+  .col{flex:1 1 240px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .col .t{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+    color:var(--dim);margin-bottom:8px}
+  ul{margin:0;padding-left:18px}
+  li{margin:3px 0;font-size:13px}
+  .in::marker{content:"→  ";color:var(--acc)}
+  .out::marker{content:"←  ";color:var(--acc2)}
+  .kv{font-size:13px;margin:4px 0}
+  .kv b{color:var(--txt);font-weight:600}
+
+  /* colored stage borders */
+  .s-gz{border-left:4px solid var(--gz)}   .s-gz .num{background:var(--gz);color:#fff}
+  .s-br{border-left:4px solid var(--bridge)}.s-br .num{background:var(--bridge);color:#fff}
+  .s-ros{border-left:4px solid var(--ros)} .s-ros .num{background:var(--ros)}
+  .s-cal{border-left:4px solid var(--cal)} .s-cal .num{background:var(--cal)}
+  .s-act{border-left:4px solid var(--act)} .s-act .num{background:var(--act);color:#0d1117}
+
+  /* ---- tables ---- */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+  th{background:var(--panel2);color:var(--txt);font-weight:600;font-size:12px;
+    letter-spacing:.3px;text-transform:uppercase}
+  tr:nth-child(even) td{background:#12171f}
+  td code{white-space:nowrap}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11.5px;font-weight:600}
+  .p-img{background:#12351f;color:var(--acc2);border:1px solid #1f5a34}
+  .p-info{background:#122a44;color:var(--acc);border:1px solid #1f4a72}
+  .p-str{background:#3a2f10;color:var(--warn);border:1px solid #6b561d}
+  .p-srv{background:#3a1f30;color:var(--act);border:1px solid #6b3a56}
+  .note{background:#101825;border:1px solid var(--line);border-left:4px solid var(--acc);
+    border-radius:8px;padding:12px 14px;font-size:13px;margin:12px 0}
+  .note b{color:var(--acc)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+  .file{color:var(--acc2);font-family:ui-monospace,Menlo,monospace;font-size:12px}
+  .hot{background:#12210f}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Stereo Camera Calibration — Image Pipeline</h1>
+  <p class="sub">ROS 2 Jazzy + Gazebo (gz‑sim) &nbsp;·&nbsp; Gazebo sim → <code>ros_gz_bridge</code> → calibration consumer.<br>
+     Calibration consumes the <b>unprocessed</b> frames <b>directly from the bridge</b> (no intermediate republish node).<br>
+     Source: <code>diff_drive.launch.py</code> (sim branch) + <code>stereo_camera_package</code>.</p>
+
+  <!-- ================= FLOW ================= -->
+  <h2>Pipeline flow</h2>
+  <div class="flow">
+
+    <div class="stage s-gz">
+      <div class="head"><span class="num">1</span><h4>Gazebo simulation (gz_sim)</h4><span class="tag">world "demo"</span></div>
+      <p class="desc">Two stereo camera sensors mounted on the robot + a kinematic <code>calibration_board</code>.
+         Render engine <b>ogre2</b>, physics ode @100&nbsp;Hz, auto‑played via <code>WorldControl</code>.</p>
+      <div class="cols">
+        <div class="col">
+          <div class="t">Camera sensors (xacro)</div>
+          <div class="kv"><b>camera_left / camera_right</b> — type <code>camera</code></div>
+          <div class="kv">Resolution <b>640×480</b>, rate <b>30 Hz</b>, HFOV 1.75 rad (~100°)</div>
+          <div class="kv">Intrinsics fx=fy≈<b>253.09</b>, cx≈358.54, cy≈194.13</div>
+          <div class="kv">Pixel format <b>RGB8</b> (Gazebo default)</div>
+          <ul>
+            <li class="out">Gz topic <code>/camera_left</code> · <code>/camera_right</code> (<code>gz.msgs.Image</code>)</li>
+            <li class="out">Gz topic <code>/camera_left/camera_info</code> · <code>/camera_right/camera_info</code> (<code>gz.msgs.CameraInfo</code>)</li>
+          </ul>
+        </div>
+        <div class="col">
+          <div class="t">Calibration target</div>
+          <div class="kv"><b>calibration_board</b> — kinematic model, gravity off</div>
+          <div class="kv">White plate 0.48×0.36 m + <b>9×6</b> interior corners (0.04 m squares, 10×7 grid)</div>
+          <div class="kv">Teleported (not driven) so 30&nbsp;Hz cameras get clean frames</div>
+          <ul>
+            <li class="in">Service <code>/world/demo/set_pose</code> (<code>gz.msgs.Pose</code>) — see stage 4</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼<small>gz.msgs.Image / CameraInfo over gz‑transport (GZ→ROS)</small></div>
+
+    <div class="stage s-br">
+      <div class="head"><span class="num">2</span><h4>ros_gz_bridge · parameter_bridge</h4><span class="tag">config ros_gz_example_bridge.yaml</span></div>
+      <p class="desc">Converts Gazebo messages to ROS 2. Direction <b>GZ_TO_ROS</b>. This is the
+         <b>direct source</b> for the calibration consumers — the frames are unprocessed (bridge output as-is).</p>
+      <table>
+        <tr><th>Gazebo topic</th><th>Gz type</th><th>→ ROS 2 topic (calibration input)</th><th>ROS type</th></tr>
+        <tr class="hot"><td class="mono">/camera_left</td><td>gz.msgs.Image</td><td class="mono">/stereo/stereo_camera/left/image_raw_raw</td><td>sensor_msgs/Image</td></tr>
+        <tr class="hot"><td class="mono">/camera_right</td><td>gz.msgs.Image</td><td class="mono">/stereo/stereo_camera/right/image_raw_raw</td><td>sensor_msgs/Image</td></tr>
+        <tr><td class="mono">/camera_left/camera_info</td><td>gz.msgs.CameraInfo</td><td class="mono">/stereo/stereo_camera/left/camera_info_raw</td><td>sensor_msgs/CameraInfo</td></tr>
+        <tr><td class="mono">/camera_right/camera_info</td><td>gz.msgs.CameraInfo</td><td class="mono">/stereo/stereo_camera/right/camera_info_raw</td><td>sensor_msgs/CameraInfo</td></tr>
+      </table>
+    </div>
+
+    <div class="arrow">▼<small>sensor_msgs.Image (rgb8, unprocessed) — approx‑time‑synced left/right pairs</small></div>
+
+    <div class="stage s-cal">
+      <div class="head"><span class="num">3</span><h4>Calibration consumer(s)</h4><span class="tag">two variants</span></div>
+      <p class="desc">Both subscribe <b>directly</b> to the bridge's raw topics
+         <code>/stereo/stereo_camera/{left,right}/image_raw_raw</code> (no frame_id / CameraInfo processing),
+         run OpenCV chessboard stereo calibration. Variant A is wired into the launch (t=30 s);
+         Variant B is the manual <code>camera_calibration</code>‑engine node with ROS services.</p>
+      <div class="cols">
+        <div class="col">
+          <div class="t">A · stereo_calibration_node (in launch)</div>
+          <ul>
+            <li class="in"><code>/stereo/stereo_camera/{left,right}/image_raw_raw</code> — ApproxTimeSync (q=10, slop 0.05)</li>
+          </ul>
+          <div class="kv" style="margin-top:8px">Detect <b>9×6</b> board, square <b>0.04 m</b>, <code>findChessboardCornersSB</code></div>
+          <div class="kv">Record pose when board centroid moves &gt;10 px, ≥0.4 s apart; need <b>min_poses=20</b> (or 6 @ 180 s timeout)</div>
+          <div class="kv">Runs <code>calibrateCamera</code> → <code>stereoCalibrate</code> → <code>stereoRectify</code></div>
+          <div class="t" style="margin-top:10px">Writes</div>
+          <div class="file">calibration_sim/left_sim.yaml</div>
+          <div class="file">calibration_sim/right_sim.yaml</div>
+          <div class="file">calibration_sim/stereo_calib_result.txt</div>
+          <div class="file">calibration_sim/images/{left,right}_NNN.png</div>
+        </div>
+        <div class="col">
+          <div class="t">B · stereo_calib_headless_node (manual)</div>
+          <ul>
+            <li class="in"><code>/stereo/stereo_camera/{left,right}/image_raw_raw</code> — ApproxTimeSync (q=4, slop 0.1)</li>
+          </ul>
+          <div class="kv" style="margin-top:8px">Engine: <code>camera_calibration.StereoCalibrator</code> (same as GUI); READY at <b>≥40</b> good samples</div>
+          <div class="t" style="margin-top:8px">Publishes</div>
+          <ul>
+            <li class="out"><code>/stereo_calib/left_annotated</code> · <code>right_annotated</code> (Image, bgr8)</li>
+            <li class="out"><code>/stereo_calib/status</code> · <code>/stereo_calib/result</code> (String)</li>
+          </ul>
+          <div class="t" style="margin-top:8px">Services (std_srvs/Trigger)</div>
+          <ul>
+            <li><code>/stereo_calib/calibrate</code> · <code>/save</code> · <code>/clear</code> · <code>/cancel</code></li>
+          </ul>
+          <div class="file" style="margin-top:6px">/tmp/calibrationdata.tar.gz</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow">▼<small>annotated Image stream (bgr8)</small></div>
+
+    <div class="stage s-act">
+      <div class="head"><span class="num">4</span><h4>collect_calib_images.py (optional)</h4><span class="tag">python</span></div>
+      <p class="desc">Saves every annotated frame to disk as PNG pairs (node <code>calib_image_collector</code>).</p>
+      <div class="cols">
+        <div class="col">
+          <div class="t">Subscribe</div>
+          <ul>
+            <li class="in"><code>/stereo_calib/left_annotated</code></li>
+            <li class="in"><code>/stereo_calib/right_annotated</code></li>
+          </ul>
+          <div class="t" style="margin-top:8px">Writes</div>
+          <div class="file">&lt;out&gt;/left/NNNNN.png</div>
+          <div class="file">&lt;out&gt;/right/NNNNN.png</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <b>Stage 5 — board actuator (feeds back into Gazebo, not the image stream):</b>
+    <code>chessboard_mover</code> (and grid/cycler variants) is a <b>gz‑transport client</b> (not a ROS node).
+    It discovers <code>/world/demo/set_pose</code> and issues <code>gz.msgs.Pose</code> requests to teleport
+    <code>calibration_board</code> through many poses (80 poses, ~4 s each) so the cameras see the board from
+    diverse depth / lateral / height / tilt viewpoints — which is what constrains the baseline and relative rotation.
+  </div>
+
+  <div class="note">
+    <b>Why no processing node:</b> the former intermediate <code>sim_stereo_camera_node</code>
+    (republished <code>/image_raw</code> + rebuilt <code>CameraInfo</code>) is <b>no longer launched</b> in the sim
+    branch. The calibration consumers only need the raw pixel data — they do their own corner detection and
+    calibration and do not consume the rebuilt <code>CameraInfo</code>. The node source remains in
+    <code>stereo_camera_package</code> should other consumers (RTAB‑Map / image_proc) later need that stream.
+  </div>
+
+  <!-- ================= IMAGE TYPES ================= -->
+  <h2>Image types on the wire</h2>
+  <table>
+    <tr><th>Topic</th><th>ROS type</th><th>Payload</th><th>Encoding</th><th>Size</th><th>Rate</th><th>Publisher</th></tr>
+    <tr>
+      <td class="mono">/camera_left<br>/camera_right</td>
+      <td>gz.msgs.Image <span class="pill p-img">image</span></td>
+      <td>Camera frame</td><td>RGB8</td><td>640×480</td><td>30 Hz</td>
+      <td>gz_sim camera sensor</td>
+    </tr>
+    <tr>
+      <td class="mono">/camera_left/camera_info<br>/camera_right/camera_info</td>
+      <td>gz.msgs.CameraInfo <span class="pill p-info">info</span></td>
+      <td>K, distortion (none), P (Tx=0)</td><td>—</td><td>—</td><td>30 Hz</td>
+      <td>gz_sim camera sensor</td>
+    </tr>
+    <tr class="hot">
+      <td class="mono">/stereo/stereo_camera/{left,right}/image_raw_raw</td>
+      <td>sensor_msgs/Image <span class="pill p-img">image</span></td>
+      <td><b>Calibration input</b> (unprocessed, bridge output)</td><td>rgb8</td><td>640×480</td><td>30 Hz</td>
+      <td>ros_gz_bridge</td>
+    </tr>
+    <tr>
+      <td class="mono">/stereo/stereo_camera/{left,right}/camera_info_raw</td>
+      <td>sensor_msgs/CameraInfo <span class="pill p-info">info</span></td>
+      <td>K, D=[], P (Tx=0) — not consumed by calibration</td><td>—</td><td>—</td><td>30 Hz</td>
+      <td>ros_gz_bridge</td>
+    </tr>
+    <tr>
+      <td class="mono">/stereo_calib/{left,right}_annotated</td>
+      <td>sensor_msgs/Image <span class="pill p-img">image</span></td>
+      <td>Raw + drawn corners + status text</td><td>bgr8</td><td>640×480</td><td>≤5 Hz</td>
+      <td>stereo_calib_headless_node</td>
+    </tr>
+    <tr>
+      <td class="mono">/stereo_calib/status</td>
+      <td>std_msgs/String <span class="pill p-str">status</span></td>
+      <td><code>[COLLECTING|READY|CALIBRATED] good=N/40</code></td><td>—</td><td>—</td><td>1 Hz</td>
+      <td>stereo_calib_headless_node</td>
+    </tr>
+    <tr>
+      <td class="mono">/stereo_calib/result</td>
+      <td>std_msgs/String <span class="pill p-str">report</span></td>
+      <td>K, D, R, T, P + epipolar error report</td><td>—</td><td>—</td><td>on calibrate</td>
+      <td>stereo_calib_headless_node</td>
+    </tr>
+  </table>
+  <div class="note">
+    The calibration input is the bridge's <b>rgb8</b> output, unchanged. The calibration consumers convert with
+    <code>cv_bridge</code> to <b>bgr8</b> for corner detection; the headless node re‑publishes annotated views as
+    <b>bgr8</b>. QoS: bridge publishes default (reliable); consumers use <code>message_filters.ApproximateTimeSynchronizer</code>.
+    The previously‑published processed topics <code>/stereo/stereo_camera/{left,right}/image_raw</code> +
+    <code>camera_info</code> are <b>not</b> produced in the sim launch anymore.
+  </div>
+
+  <!-- ================= NODES ================= -->
+  <h2>Node inventory (sim branch)</h2>
+  <table>
+    <tr><th>Node name</th><th>Package / executable</th><th>Role</th><th>Subscribes</th><th>Publishes</th></tr>
+    <tr>
+      <td><code>stereo_calibration_node</code></td>
+      <td>stereo_camera_package / <code>stereo_calibration_node</code></td>
+      <td>In‑launch calibrator; reads bridge raw topics directly; writes *_sim.yaml (auto, t=30 s)</td>
+      <td class="mono">/stereo/…/{left,right}/image_raw_raw</td>
+      <td>— (files: calibration_sim/)</td>
+    </tr>
+    <tr>
+      <td><code>stereo_calib_headless</code></td>
+      <td>stereo_camera_package / <code>stereo_calib_headless_node</code></td>
+      <td>Manual GUI‑equivalent calibrator; annotated topics + Trigger services</td>
+      <td class="mono">/stereo/…/{left,right}/image_raw_raw</td>
+      <td class="mono">/stereo_calib/{left,right}_annotated<br>/stereo_calib/status<br>/stereo_calib/result</td>
+    </tr>
+    <tr>
+      <td><code>calib_image_collector</code></td>
+      <td>python3 / <code>collect_calib_images.py</code></td>
+      <td>Save annotated pairs to disk (optional)</td>
+      <td class="mono">/stereo_calib/{left,right}_annotated</td>
+      <td>— (PNG files)</td>
+    </tr>
+    <tr>
+      <td><code>chessboard_mover</code> <span class="tag">gz‑transport</span></td>
+      <td>stereo_camera_package / <code>chessboard_mover</code></td>
+      <td>Teleport board through diverse poses (gz‑transport client, not ROS)</td>
+      <td>—</td>
+      <td>service req <code>/world/demo/set_pose</code> (gz.msgs.Pose)</td>
+    </tr>
+    <tr>
+      <td><code>parameter_bridge</code></td>
+      <td>ros_gz_bridge / <code>parameter_bridge</code></td>
+      <td>GZ→ROS message conversion (images + info) — <b>direct calibration source</b></td>
+      <td class="mono">/camera_left, /camera_right (+/camera_info)</td>
+      <td class="mono">/stereo/…/{left,right}/image_raw_raw<br>/stereo/…/{left,right}/camera_info_raw</td>
+    </tr>
+    <tr>
+      <td><code>sim_stereo_camera_publisher</code> <span class="tag" style="color:var(--bad);background:#3a1f1f">not launched</span></td>
+      <td>stereo_camera_package / <code>sim_stereo_camera_node</code></td>
+      <td>(Disabled) republished <code>/image_raw</code> + rebuilt CameraInfo; source kept for RTAB‑Map / image_proc</td>
+      <td class="mono">/stereo/…/{left,right}/image_raw_raw<br>/stereo/…/{left,right}/camera_info_raw</td>
+      <td class="mono">/stereo/…/{left,right}/image_raw<br>/stereo/…/{left,right}/camera_info</td>
+    </tr>
+  </table>
+
+  <!-- ================= CONFIG / OUTPUTS ================= -->
+  <h2>Calibration config &amp; outputs</h2>
+  <div class="grid2">
+    <div class="col" style="flex:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+      <div class="t">Parameters (launch: stereo_calibration_node)</div>
+      <table style="margin:6px 0">
+        <tr><th>param</th><th>value</th></tr>
+        <tr><td class="mono">pattern_cols × rows</td><td>9 × 6 (interior corners)</td></tr>
+        <tr><td class="mono">square</td><td>0.04 m</td></tr>
+        <tr><td class="mono">min_poses</td><td>20</td></tr>
+        <tr><td class="mono">max_capture_time</td><td>180.0 s</td></tr>
+        <tr><td class="mono">left_topic / right_topic</td><td class="mono">…/{left,right}/image_raw_raw</td></tr>
+        <tr><td class="mono">output_dir</td><td class="mono">/root/data/project_ws/calibration_sim</td></tr>
+      </table>
+      <div class="t" style="margin-top:12px">Headless target</div>
+      <div class="kv">READY at <b>≥40</b> good samples or full parameter coverage</div>
+      <div class="kv">Baseline (physical) ≈ <b>0.06028 m</b></div>
+    </div>
+    <div class="col" style="flex:none;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px">
+      <div class="t">Output artifacts</div>
+      <div class="file">calibration_sim/left_sim.yaml</div>
+      <div class="file">calibration_sim/right_sim.yaml</div>
+      <div class="file">calibration_sim/stereo_calib_result.txt</div>
+      <div class="file">calibration_sim/images/{left,right}_NNN.png</div>
+      <div class="file">/tmp/calibrationdata.tar.gz  <span style="color:var(--dim)">(headless do_save)</span></div>
+      <div class="kv" style="margin-top:10px">Yaml fields: image_width/height, camera_name,
+        camera_matrix (K), distortion_model <i>plumb_bob</i>, distortion_coefficients (D, 5),
+        rectification_matrix (R), projection_matrix (P).</div>
+    </div>
+  </div>
+
+  <h2>Post‑calibration verification (optional)</h2>
+  <div class="grid2">
+    <div class="note" style="margin:0">
+      <b>evidence_stereo.py / evidence_live.py / evidence_offline.py</b> — load
+      <span class="file">calibration_sim/{left,right}_sim.yaml</span>, undistort+rectify, run SGBM disparity,
+      measure epipolar row alignment, triangulate the board (recovered square vs true 0.04 m), and write
+      <span class="file">calibration_sim/evidence/*.json</span> + PNGs.
+      <span style="color:var(--dim)">(These standalone tools still point at the processed
+      <code>/image_raw</code> topics; repoint them to <code>/image_raw_raw</code> to use the direct stream.)</span>
+    </div>
+    <div class="note" style="margin:0">
+      <b>regen_calib.py</b> — re‑calibrate from the saved tarball and rebuild the stereo‑rectify P with fresh
+      <code>cv2.stereoRectify</code> buffers (workaround for the OpenCV 4.6 in‑place P corruption),
+      writing <span class="file">/tmp/calibrationdata_fixed.tar.gz</span>.
+    </div>
+  </div>
+
+  <p class="sub" style="margin-top:36px">Generated from the live workspace: <code>diff_drive.launch.py</code>,
+     <code>ros_gz_example_bridge.yaml</code>, <code>model.urdf.xacro</code>, <code>stereo_camera_package/*</code>,
+     <code>collect_calib_images.py</code>, <code>chessboard_mover.py</code>.</p>
+</div>
+</body>
+</html>

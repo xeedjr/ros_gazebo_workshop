@@ -14,7 +14,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    entrypoint: "/root/data/project_ws/build2.sh"
+    entrypoint: sleep 999d #"/root/data/project_ws/build2.sh"
     stdin_open: true
     tty: true
     network_mode: host  

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Stereo camera calibration node for the simulated stereo camera pipeline.
 
-Sits in the image pipeline right after ``sim_stereo_camera_node``. It subscribes
-to the synced left/right raw images (published by the Gazebo stereo cameras via
-the ros_gz bridge), detects a 9x6 chessboard in both views, accumulates enough
-diverse board poses (the board is teleported around by ``chessboard_mover``),
-then runs cv2 stereo calibration and writes the recovered intrinsics to NEW yaml
-files (``<output_dir>/left_sim.yaml`` / ``right_sim.yaml``) in exactly the same
-format as the existing ``left.yaml`` / ``right.yaml``.
+Subscribes DIRECTLY to the ros_gz_bridge raw image topics
+(``/stereo/stereo_camera/{left,right}/image_raw_raw``) -- the unprocessed Gazebo
+frames, no intermediate republish/processing node. It syncs the left/right
+images, detects a 9x6 chessboard in both views, accumulates enough diverse board
+poses (the board is teleported around by ``chessboard_mover``), then runs cv2
+stereo calibration and writes the recovered intrinsics to NEW yaml files
+(``<output_dir>/left_sim.yaml`` / ``right_sim.yaml``) in exactly the same format
+as the existing ``left.yaml`` / ``right.yaml``.
 
 It also writes a human-readable summary to ``<output_dir>/stereo_calib_result.txt``
 and keeps a few sample image pairs under ``<output_dir>/images/``.
@@ -65,10 +66,12 @@ class StereoCalibrationNode(Node):
         self.declare_parameter("save_sample_images", True)
         self.declare_parameter("min_record_interval", 0.4)
         self.declare_parameter("centroid_jump_px", 10.0)
+        # Unprocessed stereo frames straight from the ros_gz bridge (the
+        # bridge's GZ_TO_ROS output), bypassing any republish/processing node.
         self.declare_parameter("left_topic",
-                               "/stereo/stereo_camera/left/image_raw")
+                               "/stereo/stereo_camera/left/image_raw_raw")
         self.declare_parameter("right_topic",
-                               "/stereo/stereo_camera/right/image_raw")
+                               "/stereo/stereo_camera/right/image_raw_raw")
 
         self.cols = int(self.get_parameter("pattern_cols").value)
         self.rows = int(self.get_parameter("pattern_rows").value)
