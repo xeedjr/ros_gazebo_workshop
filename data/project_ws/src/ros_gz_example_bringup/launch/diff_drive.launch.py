@@ -395,12 +395,14 @@ def generate_launch_description():
           'frame_id':'base_link',
           'subscribe_stereo':True,
           'subscribe_odom_info':True,
+          'subscribe_imu':True,
           'wait_imu_to_init':False,
           'use_sim_time':use_sim_time,
-          'always_check_imu_tf': False,
-          'Rtabmap/ImagesAlreadyRectified':"true", 
-          #'Vis/FeatureType': "8",
-          'publish_tf':True}]
+           'always_check_imu_tf': False,
+           'Rtabmap/ImagesAlreadyRectified':"true",
+           'Rtabmap/Odom/Strategy': 1,
+           #'Vis/FeatureType': "8",
+           'publish_tf':True}]
 
     parameters_slam=[{
           'frame_id':'base_link',
@@ -419,7 +421,8 @@ def generate_launch_description():
           ('left/image_rect', '/stereo/stereo_camera/left/image_rect'),
           ('left/camera_info', '/stereo/stereo_camera/left/camera_info'),
           ('right/image_rect', '/stereo/stereo_camera/right/image_rect'),
-          ('right/camera_info', '/stereo/stereo_camera/right/camera_info')]
+          ('right/camera_info', '/stereo/stereo_camera/right/camera_info'),
+          ('imu', '/imu/data')]
 
     # Visual odometry
     rtabmap_odom_node =   Node(
@@ -452,7 +455,7 @@ def generate_launch_description():
                 actions=[
                     diff_drive_spawner,
                     joint_broad_spawner,
-                    #madgwick_filter,
+                    madgwick_filter,
                     # robot_localization_odom,
                     # robot_localization_map,
 
